@@ -1,125 +1,168 @@
 {
-  "courses": [
-    {
-      "pattern": "Diskrete Strukturen (IN0015)",
-      "match_type": "literal",
-      "semester": "WS25_26",
-      "destination_base": "~/Documents/Uni/DS",
-      "config_type": "category_auto"
-    },
-    {
-      "pattern": "Einführung in die Informatik (IN0001)",
-      "match_type": "literal",
-      "semester": "WS25_26",
-      "destination_base": "~/Documents/Uni/EIDI",
-      "config_type": "file_auto"
-    },
-    {
-      "pattern": "Einführung in die Rechnerarchitektur (IN0004)",
-      "match_type": "literal",
-      "semester": "WS25_26",
-      "destination_base": "~/Documents/Uni/ERA",
-      "update": "rename",
-      "config_type": "file_manual",
-      "config": {
-        "rules": {
-          "files": [
-            {
-              "pattern": "Tutorienübersicht",
-              "match_type": "literal",
-              "ignore": true
-            },
-            {
-              "pattern": "^Vorlesung",
-              "match_type": "regex",
-              "directory": "Vorlesungen"
-            },
-            {
-              "pattern": "^Zentralübung",
-              "match_type": "regex",
-              "directory": "Übungen"
-            },
-            {
-              "pattern": "^Übungsblatt",
-              "match_type": "regex",
-              "directory": "Übungen"
-            },
-            {
-              "pattern": ".*",
-              "match_type": "regex",
-              "directory": "Sonstiges"
+    "courses": [
+        {
+            "pattern": "Analysis für Informatik [MA0902]",
+            "match_type": "literal",
+            "semester": "WS25_26",
+            "destination_base": "~/Documents/Uni/AnaFI",
+            "update": "rename",
+            "config_type": "category_manual",
+            "config": {
+                "rules": {
+                    "categories": [
+                        {
+                            "pattern": "Übungen",
+                            "match_type": "literal",
+                            "destination": "Übungen"
+                        },
+                        {
+                            "pattern": "Aufgabenabgabe",
+                            "match_type": "literal",
+                            "destination": "~/Documents/Uni/AnaFI/Aufgabenabgabe",
+                            "update": "overwrite"
+                        },
+                        {
+                            "pattern": ".*",
+                            "match_type": "regex",
+                            "destination": "Sonstiges",
+                            "update": "skip"
+                        }
+                    ],
+                    "files": [
+                        {
+                            "pattern": "Übungsgruppen",
+                            "match_type": "regex",
+                            "ignore": true
+                        },
+                        {
+                            "pattern": "Abgabe Blatt",
+                            "match_type": "regex",
+                            "ignore": true
+                        }
+                    ]
+                }
             }
-          ]
-        }
-      }
-    },
-    {
-      "pattern": "Grundlagen: Betriebssysteme und Systemsoftware (IN0009)",
-      "match_type": "literal",
-      "semester": "WS25_26",
-      "destination_base": "~/Documents/Uni/GBS",
-      "config_type": "file_auto"
-    },
-    {
-      "pattern": "Grundlagen: Datenbanken (IN0008)",
-      "match_type": "literal",
-      "semester": "WS25_26",
-      "destination_base": "~/Documents/Uni/GDB",
-      "update": "rename",
-      "config_type": "file_manual",
-      "config": {
-        "rules": {
-          "files": [
-            {
-              "pattern": "^Blatt",
-              "match_type": "regex",
-              "directory": "Übungen"
-            },
-            {
-              "pattern": ".*",
-              "match_type": "regex",
-              "directory": "Übungen"
+        },
+        {
+            "pattern": "Diskrete Strukturen (IN0015)",
+            "match_type": "literal",
+            "semester": "WS25_26",
+            "destination_base": "~/Documents/Uni/DS",
+            "config_type": "category_auto"
+        },
+        {
+            "pattern": "Einführung in die Informatik (IN0001)",
+            "match_type": "literal",
+            "semester": "WS25_26",
+            "destination_base": "~/Documents/Uni/EIDI",
+            "config_type": "file_auto"
+        },
+        {
+            "pattern": "Einführung in die Rechnerarchitektur (IN0004)",
+            "match_type": "literal",
+            "semester": "WS25_26",
+            "destination_base": "~/Documents/Uni/ERA",
+            "update": "rename",
+            "config_type": "file_manual",
+            "config": {
+                "rules": {
+                    "files": [
+                        {
+                            "pattern": "Tutorienübersicht",
+                            "match_type": "literal",
+                            "ignore": true
+                        },
+                        {
+                            "pattern": "^Vorlesung",
+                            "match_type": "regex",
+                            "directory": "Vorlesungen"
+                        },
+                        {
+                            "pattern": "^Zentralübung",
+                            "match_type": "regex",
+                            "directory": "Übungen"
+                        },
+                        {
+                            "pattern": "^Übungsblatt",
+                            "match_type": "regex",
+                            "directory": "Übungen"
+                        },
+                        {
+                            "pattern": ".*",
+                            "match_type": "regex",
+                            "directory": "Sonstiges"
+                        }
+                    ]
+                }
             }
-          ]
-        }
-      }
-    },
-    {
-      "pattern": "IT Sicherheit (IN0042)",
-      "match_type": "literal",
-      "semester": "WS25_26",
-      "destination_base": "~/Documents/Uni/ITSec",
-      "update": "rename",
-      "config_type": "file_manual",
-      "config": {
-        "rules": {
-          "files": [
-            {
-              "pattern": "^Kapitel",
-              "match_type": "regex",
-              "directory": "Folien"
-            },
-            {
-              "pattern": "^Übungsblatt",
-              "match_type": "regex",
-              "directory": "Übungen"
-            },
-            {
-              "pattern": ".*",
-              "match_type": "regex",
-              "directory": "Sonstiges"
+        },
+        {
+            "pattern": "Grundlagen: Betriebssysteme und Systemsoftware (IN0009)",
+            "match_type": "literal",
+            "semester": "WS25_26",
+            "destination_base": "~/Documents/Uni/GBS",
+            "config_type": "file_auto"
+        },
+        {
+            "pattern": "Grundlagen: Datenbanken (IN0008)",
+            "match_type": "literal",
+            "semester": "WS25_26",
+            "destination_base": "~/Documents/Uni/GDB",
+            "update": "rename",
+            "config_type": "file_manual",
+            "config": {
+                "rules": {
+                    "files": [
+                        {
+                            "pattern": "^Blatt",
+                            "match_type": "regex",
+                            "directory": "Übungen"
+                        },
+                        {
+                            "pattern": ".*",
+                            "match_type": "regex",
+                            "directory": "Übungen"
+                        }
+                    ]
+                }
             }
-          ]
+        },
+        {
+            "pattern": "IT Sicherheit (IN0042)",
+            "match_type": "literal",
+            "semester": "WS25_26",
+            "destination_base": "~/Documents/Uni/ITSec",
+            "update": "rename",
+            "config_type": "file_manual",
+            "config": {
+                "rules": {
+                    "files": [
+                        {
+                            "pattern": "^Kapitel",
+                            "match_type": "regex",
+                            "directory": "Folien"
+                        },
+                        {
+                            "pattern": "^Übungsblatt",
+                            "match_type": "regex",
+                            "directory": "Übungen"
+                        },
+                        {
+                            "pattern": ".*",
+                            "match_type": "regex",
+                            "directory": "Sonstiges"
+                        }
+                    ]
+                }
+            }
         }
-      }
-    }
-  ],
-  "show_hidden_courses": false,
-  "cache_dir": "~/.cache/autumoodle",
-  "summary_dir": "~/.config/autumoodle/summaries",
-  "session": {
-    "save": true,
-    "save_path": "~/.config/autumoodle/session.json"
-  },
-  "log_level": "DEBUG"
+    ],
+    "show_hidden_courses": false,
+    "cache_dir": "~/.cache/autumoodle",
+    "summary_dir": "~/.config/autumoodle/summaries",
+    "session": {
+        "save": true,
+        "save_path": "~/.config/autumoodle/session.json"
+    },
+    "log_level": "DEBUG"
 }
