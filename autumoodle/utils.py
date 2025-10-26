@@ -16,8 +16,10 @@ def passthrough(whatever):
 
 
 def sanitize_filename(filename: str) -> str:
-    '''Sanitize a filename by removing or replacing unsafe characters.'''
-    return re.sub(r'[^a-zA-Z0-9._-]', '_', filename)
+    '''Sanitize a filename by removing unsafe characters.'''
+    name = re.sub(r'[<>:"/\\|*\x00-\x1F]', '', filename)
+    name = re.sub(r'[?]', '_', name)
+    return name
 
 
 def parse_semester(semester: str) -> tuple[bool, int]:

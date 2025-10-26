@@ -1,0 +1,55 @@
+{
+  "courses": [
+    {
+      "pattern": "Analysis für Informatik [MA0902]",
+      "match_type": "literal",
+      "semester": "WS25_26",
+      "destination_base": "~/Documents/Uni/AnaFI",
+      "update": "rename",
+      "config_type": "category_manual",
+      "config": {
+        "rules": {
+          "categories": [
+            {
+              "pattern": "Übungen",
+              "match_type": "literal",
+              "destination": "Übungen"
+            },
+            {
+              "pattern": "Aufgabenabgabe",
+              "match_type": "literal",
+              "destination": "~/Documents/Uni/AnaFI/Aufgabenabgabe",
+              "update": "overwrite"
+            },
+            {
+              "pattern": ".*",
+              "match_type": "regex",
+              "destination": "Sonstiges",
+              "update": "skip"
+            }
+          ],
+          "files": [
+            {
+              "pattern": "Übungsgruppen",
+              "match_type": "regex",
+              "ignore": true
+            },
+            {
+              "pattern": "Abgabe Blatt",
+              "match_type": "regex",
+              "ignore": true
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "show_hidden_courses": false,
+  "cache_dir": "~/.cache/autumoodle",
+  "summary_dir": "~/.config/autumoodle/summaries",
+  "session": {
+    "save": true,
+    "save_path": "~/.config/autumoodle/session.json"
+  },
+  "log_level": "DEBUG"
+}

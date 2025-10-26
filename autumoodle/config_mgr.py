@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from enum import Enum
 import re
@@ -20,44 +20,58 @@ class CourseConfigType(Enum):
     FILE_MANUAL = "file_manual"          # use manually defined file configs, only the included files will be considered
 
 
-@dataclass
-class _DefaultConfig:
-    show_hidden_courses: bool = False
-    cache_dir: Path = Path.home() / ".cache" / "autumoodle"
-    summary_dir: Path = cache_dir / "summaries"
-    session_save: bool = True
-    session_save_path: Path = cache_dir / "session.json"
-    log_level: str = "INFO"
-    update_type: UpdateType = UpdateType.RENAME
-    course_config_type: CourseConfigType = CourseConfigType.CATEGORY_AUTO
+# Using a function to return defaults for clarity and consistency
+def get_default_config():
+    return {
+        "show_hidden_courses": False,
+        "cache_dir": Path.home() / ".cache" / "autumoodle",
+        "summary_dir": Path.home() / ".cache" / "autumoodle" / "summaries",
+        "session_save": True,
+        "session_save_path": Path.home() / ".cache" / "autumoodle" / "session.json",
+        "log_level": "INFO",
+        "update_type": UpdateType.RENAME,
+        "course_config_type": CourseConfigType.CATEGORY_AUTO
+    }
 
 
 @dataclass
-class _FileConfig:
+class FileConfig:
     name_matcher: PatternMatcher
-    destination: Path | None = None
-    update_type: UpdateType = UpdateType.RENAME
+    directory: Path | None
+    update_type: UpdateType | None
+    ignore: bool = False
 
     def __init__(self, config_data: dict):
+        self.directory = None
+        self.update_type = None
+        self.ignore = False
+
         if "pattern" not in config_data or "match_type" not in config_data:
             raise ValueError("file config requires 'pattern' and 'match_type' fields")
         self.name_matcher = PatternMatcher(
             config_data["pattern"], config_data["match_type"]
         )
 
-        if "destination" in config_data:
-            self.destination = Path(config_data["destination"]).expanduser()
+        if "ignore" in config_data:
+            self.ignore = config_data["ignore"]
 
-        self.update_type = UpdateType(config_data["update"].lower())
+        if "directory" in config_data:
+            self.directory = Path(config_data["directory"]).expanduser()
+
+        if "update" in config_data:
+            self.update_type = UpdateType(config_data["update"].lower())
 
 
 @dataclass
-class _CategoryConfig:
+class CategoryConfig:
     title_matcher: PatternMatcher
-    destination: Path | None = None
-    update_type: UpdateType = UpdateType.RENAME
+    destination: Path | None
+    update_type: UpdateType | None
 
     def __init__(self, config_data: dict):
+        self.destination = None
+        self.update_type = None
+
         if "pattern" not in config_data or "match_type" not in config_data:
             raise ValueError("category config requires 'pattern' and 'match_type' fields")
         self.title_matcher = PatternMatcher(
@@ -67,21 +81,27 @@ class _CategoryConfig:
         if "destination" in config_data:
             self.destination = Path(config_data["destination"]).expanduser()
 
-        self.update_type = UpdateType(config_data["update"].lower())
+        if "update" in config_data:
+            self.update_type = UpdateType(config_data["update"].lower())
 
 
 @dataclass
-class _CourseConfig:
+class CourseConfig:
     title_matcher: PatternMatcher
     is_ws: bool
     start_year: int
     destination_base: Path
-    categories: list[_CategoryConfig]
-    files: list[_FileConfig]
-    config_type: CourseConfigType = CourseConfigType.CATEGORY_AUTO
-    update_type: UpdateType = UpdateType.RENAME
+    categories: list[CategoryConfig] = field(default_factory=list)
+    files: list[FileConfig] = field(default_factory=list)
+    config_type: CourseConfigType = get_default_config()["course_config_type"]
+    update_type: UpdateType = get_default_config()["update_type"]
 
     def __init__(self, config_data: dict):
+        self.categories = []
+        self.files = []
+        self.config_type = get_default_config()["course_config_type"]
+        self.update_type = get_default_config()["update_type"]
+
         # title matcher
         if "pattern" not in config_data or "match_type" not in config_data:
             raise ValueError("CourseConfig requires 'pattern' and 'match_type' fields")
@@ -118,35 +138,34 @@ class _CourseConfig:
         if self.config_type == CourseConfigType.CATEGORY_AUTO or self.config_type == CourseConfigType.FILE_AUTO:
             if "categories" in config_data or "files" in config_data:
                 raise ValueError(f"Auto config type '{self.config_type.value}' should not have 'categories' or 'files' defined")
-            self.categories = []
-            self.files = []
+            # self.categories and self.files are already initialized to []
             return
         elif self.config_type == CourseConfigType.FILE_MANUAL:
             if "categories" in config_data:
                 raise ValueError(f"file_manual config type should not have 'categories' defined")
 
-        for cat_cfg in config_data.get("categories", []):
-            self.categories.append(_CategoryConfig(cat_cfg))
+        config = config_data.get("config", {})
+        rules = config.get("rules", {})
+        for cat_cfg in rules.get("categories", []):
+            self.categories.append(CategoryConfig(cat_cfg))
 
-        for file_cfg in config_data.get("files", []):
-            self.files.append(_FileConfig(file_cfg))
+        for file_cfg in rules.get("files", []):
+            self.files.append(FileConfig(file_cfg))
 
 
 class ConfigManager:
-    defaults = _DefaultConfig()
-
-    show_hidden_courses: bool = defaults.show_hidden_courses
-    cache_dir: Path = defaults.cache_dir
-    summary_dir: Path = defaults.summary_dir
-    session_save: bool = defaults.session_save
-    session_save_path: Path = defaults.session_save_path
-    log_level: str = defaults.log_level
-    courses_config: list[_CourseConfig] = []
-
-    username: str = ""
-    password: str = ""
-
     def __init__(self, config_data: dict):
+        defaults = get_default_config()
+        self.show_hidden_courses: bool = defaults["show_hidden_courses"]
+        self.cache_dir: Path = defaults["cache_dir"]
+        self.summary_dir: Path = defaults["summary_dir"]
+        self.session_save: bool = defaults["session_save"]
+        self.session_save_path: Path = defaults["session_save_path"]
+        self.log_level: str = defaults["log_level"]
+        self.courses_config: list[CourseConfig] = []
+        self.username: str = ""
+        self.password: str = ""
+
         try:
             if "show_hidden_courses" in config_data:
                 self.show_hidden_courses = config_data["show_hidden_courses"]
@@ -168,7 +187,7 @@ class ConfigManager:
                     raise ValueError(f"Invalid log_level: {self.log_level}, must be one of DEBUG, INFO, WARNING, ERROR")
             if "courses" in config_data:
                 for course_cfg in config_data["courses"]:
-                    self.courses_config.append(_CourseConfig(course_cfg))
+                    self.courses_config.append(CourseConfig(course_cfg))
 
         except Exception as e:
             raise ValueError(f"Error parsing configuration: {e}") from e

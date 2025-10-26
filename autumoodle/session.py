@@ -204,7 +204,7 @@ class TUMMoodleSession:
                 metainfo = link.locator('span.coc-metainfo')
                 metainfo_text = (await metainfo.inner_text()).strip() if metainfo else ""
                 is_ws, start_year = utils.parse_semester(metainfo_text.split(
-                    " | ")[-1].removeprefix("(")) if metainfo_text else (False, 0)
+                    " | ")[0].removeprefix("(")) if metainfo_text else (False, 0)
                 course = CourseInfo(
                     id=id,
                     title=title.strip(),
@@ -277,6 +277,8 @@ class TUMMoodleSession:
         Logger.d("TUMMoodleSession", f"Selecting {len(to_check)} resources for download...")
         for input_elem in to_check:
             await input_elem.check()
+        await page.locator('input[id="id_filesrealnames"]').uncheck()
+        await page.locator('input[id="id_addnumbering"]').uncheck()
         async with page.expect_download(timeout=TIMEOUT * 1000) as download_info:
             await page.locator('input[id="id_submitbutton"]').click()
             Logger.d("TUMMoodleSession", f"Download initiated, waiting for completion...")
@@ -318,14 +320,13 @@ class TUMMoodleSession:
             download = await self._perform_download(filtered_resources, page)
             if download:
                 Logger.d("TUMMoodleSession", f"Downloaded archive will be saved to: {save_path}")
-                return download.save_as(str(save_path))
+                return await download.save_as(str(save_path))
             else:
                 Logger.w("TUMMoodleSession", f"No archive was downloaded for course {course_id}.")
-                return None
 
         except Exception as e:
-            Logger.e("TUMMoodleSession", f"Failed to download archives for course {course_id}: {e}")
-            return None
+            Logger.e("TUMMoodleSession", f"Failed to download archive for course {course_id}: {e}")
+            raise
         finally:
             if page:
                 await page.close()
