@@ -1,10 +1,9 @@
-from dataclasses import dataclass
 from pathlib import Path
 import asyncio
 
 from .session import TUMMoodleSession, CourseInfo, ResourceCategory
-from .config_mgr import ConfigManager, CourseConfig, CourseConfigType, UpdateType
-from .utils import passthrough, create_temp_file, PatternMatcher
+from .config_mgr import ConfigManager, CourseConfig, CourseConfigType
+from .utils import create_temp_file, PatternMatcher
 from .log import Logger
 from .zip_extract import FileDownloadConfig, ZipExtractor
 
