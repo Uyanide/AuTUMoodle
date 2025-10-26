@@ -38,7 +38,6 @@ class ZipExtractor:
         with create_temp_dir(prefix="autumoodle_zip_extract_") as temp_dir:
             with ZipFile(self._file_path, 'r') as zip_ref:
                 for zip_info in zip_ref.infolist():
-                    print(f"Processing zip entry: {zip_info}")
                     normalized_name = zip_info.filename.replace("\\", "/").lstrip("/")
                     splitted = normalized_name.split("/")
                     if len(splitted) < 2:
@@ -55,7 +54,6 @@ class ZipExtractor:
                         file_config = self._find_matching_config(category_name, entry_name, file_download_configs)
 
                     if file_config is None:
-                        print(f"No matching config")
                         continue
 
                     temp_path = temp_dir / zip_info.filename
