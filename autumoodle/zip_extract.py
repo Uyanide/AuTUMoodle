@@ -34,6 +34,13 @@ class ZipExtractor:
             return config
         return None
 
+    def _copy_with_stat(self, src: Path, dest: Path):
+        shutil.copy2(src, dest)
+        try:
+            shutil.copystat(src, dest)
+        except OSError:
+            pass
+
     def extract_files(self, file_download_configs: list[FileDownloadConfig]):
         with create_temp_dir(prefix="autumoodle_zip_extract_") as temp_dir:
             with ZipFile(self._file_path, 'r') as zip_ref:
@@ -56,8 +63,7 @@ class ZipExtractor:
                     if file_config is None:
                         continue
 
-                    temp_path = temp_dir / zip_info.filename
-                    zip_ref.extract(zip_info, temp_dir)
+                    temp_path = Path(zip_ref.extract(zip_info, temp_dir))
 
                     destination_path = file_config.directory / entry_name  # correct extension
                     # Handle subdirectories
@@ -76,8 +82,7 @@ class ZipExtractor:
                         continue
 
                     if update_type == UpdateType.OVERWRITE:
-                        # zip_ref.extract(zip_info, destination_path.parent)
-                        shutil.copy2(temp_path, destination_path)
+                        self._copy_with_stat(temp_path, destination_path)
                     elif update_type == UpdateType.RENAME:
                         final_path = Path(destination_path)
                         counter = 1
@@ -85,10 +90,10 @@ class ZipExtractor:
                             final_path = destination_path.with_name(
                                 f"{destination_path.stem}_{counter}{destination_path.suffix}")
                             counter += 1
-                        shutil.copy2(temp_path, final_path)
+                        self._copy_with_stat(temp_path, final_path)
                     elif update_type == UpdateType.SKIP:
                         if destination_path.exists():
                             continue
-                        shutil.copy2(temp_path, destination_path)
+                        self._copy_with_stat(temp_path, destination_path)
                     else:
                         raise ValueError(f"Unknown update type: {update_type}")
