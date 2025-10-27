@@ -65,7 +65,7 @@ class ZipExtractor:
 
                     temp_path = Path(zip_ref.extract(zip_info, temp_dir))
 
-                    destination_path = file_config.directory / entry_name  # correct extension
+                    destination_path = file_config.directory / entry_name
                     # Handle subdirectories
                     if len(splitted) > 2:
                         destination_path = destination_path / "/".join(splitted[2:])

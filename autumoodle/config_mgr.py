@@ -28,6 +28,7 @@ def get_default_config():
         "summary_dir": Path.home() / ".cache" / "autumoodle" / "summaries",
         "session_save": True,
         "session_save_path": Path.home() / ".cache" / "autumoodle" / "session.json",
+        "destination_base": Path.home() / "Documents" / "AuTUMoodle",
         "log_level": "INFO",
         "update_type": UpdateType.RENAME,
         "course_config_type": CourseConfigType.CATEGORY_AUTO
@@ -90,7 +91,7 @@ class CourseConfig:
     title_matcher: PatternMatcher
     is_ws: bool
     start_year: int
-    destination_base: Path
+    destination_base: Path | None = None
     categories: list[CategoryConfig] = field(default_factory=list)
     files: list[FileConfig] = field(default_factory=list)
     config_type: CourseConfigType = get_default_config()["course_config_type"]
@@ -123,9 +124,8 @@ class CourseConfig:
             self.start_year = 2000 + number_groups[0]
 
         # destination base
-        if "destination_base" not in config_data:
-            raise ValueError("CourseConfig requires 'destination_base' field")
-        self.destination_base = Path(config_data["destination_base"]).expanduser()
+        if "destination_base" in config_data:
+            self.destination_base = Path(config_data["destination_base"]).expanduser()
 
         # update type
         if "update" in config_data:
@@ -162,6 +162,7 @@ class ConfigManager:
         self.session_save: bool = defaults["session_save"]
         self.session_save_path: Path = defaults["session_save_path"]
         self.log_level: str = defaults["log_level"]
+        self.destination_base: Path = defaults["destination_base"]
         self.courses_config: list[CourseConfig] = []
         self.username: str = ""
         self.password: str = ""
@@ -185,6 +186,8 @@ class ConfigManager:
                 self.log_level = config_data["log_level"]
                 if self.log_level not in ["DEBUG", "INFO", "WARNING", "ERROR"]:
                     raise ValueError(f"Invalid log_level: {self.log_level}, must be one of DEBUG, INFO, WARNING, ERROR")
+            if "destination_base" in config_data:
+                self.destination_base = Path(config_data["destination_base"]).expanduser()
             if "courses" in config_data:
                 for course_cfg in config_data["courses"]:
                     self.courses_config.append(CourseConfig(course_cfg))

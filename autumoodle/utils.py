@@ -5,6 +5,7 @@ from contextlib import contextmanager
 from enum import Enum
 from functools import partial
 from typing import Callable
+import unicodedata
 
 
 def check_prefix(prefix: str) -> re.Pattern:
@@ -15,11 +16,28 @@ def passthrough(whatever):
     return whatever
 
 
-def sanitize_filename(filename: str) -> str:
-    '''Sanitize a filename by removing unsafe characters.'''
-    name = re.sub(r'[<>:"/\\|*\x00-\x1F]', '', filename)
-    name = re.sub(r'[?]', '_', name)
-    return name
+def sanitize_filename(filename: str | Path, allow_separators: bool = False) -> str:
+    """Sanitize a filename"""
+    if not filename:
+        return "unnamed"
+
+    if not isinstance(filename, str):
+        filename = str(filename)
+
+    # Control characters
+    filename = unicodedata.normalize("NFKC", filename)
+    filename = re.sub(r"[\x00-\x1F\x7F]", "", filename)
+    filename = filename.strip()
+
+    # Path separators
+    if not allow_separators:
+        filename = filename.replace("/", "").replace("\\", "")
+
+    # Other risky chars
+    filename = re.sub(r'[<>:"|*]', "", filename)
+    filename = re.sub(r'[?]', "_", filename)
+
+    return filename
 
 
 def parse_semester(semester: str) -> tuple[bool, int]:

@@ -1,10 +1,11 @@
 {
+    "destination_base": "~/Documents/Uni",
     "courses": [
         {
             "pattern": "Analysis für Informatik [MA0902]",
             "match_type": "literal",
             "semester": "WS25_26",
-            "destination_base": "~/Documents/Uni/AnaFI",
+            "destination_base": "AnaFI",
             "update": "rename",
             "config_type": "category_manual",
             "config": {
@@ -12,20 +13,16 @@
                     "categories": [
                         {
                             "pattern": "Übungen",
-                            "match_type": "literal",
-                            "destination": "Übungen"
+                            "match_type": "literal"
                         },
                         {
                             "pattern": "Aufgabenabgabe",
-                            "match_type": "literal",
-                            "destination": "~/Documents/Uni/AnaFI/Aufgabenabgabe",
-                            "update": "overwrite"
+                            "match_type": "literal"
                         },
                         {
                             "pattern": ".*",
                             "match_type": "regex",
-                            "destination": "Sonstiges",
-                            "update": "skip"
+                            "destination": "Sonstiges"
                         }
                     ],
                     "files": [
@@ -47,22 +44,21 @@
             "pattern": "Diskrete Strukturen (IN0015)",
             "match_type": "literal",
             "semester": "WS25_26",
-            "destination_base": "~/Documents/Uni/DS",
+            "destination_base": "DS",
             "config_type": "category_auto"
         },
         {
             "pattern": "Einführung in die Informatik (IN0001)",
             "match_type": "literal",
             "semester": "WS25_26",
-            "destination_base": "~/Documents/Uni/EIDI",
+            "destination_base": "EIDI",
             "config_type": "file_auto"
         },
         {
             "pattern": "Einführung in die Rechnerarchitektur (IN0004)",
             "match_type": "literal",
             "semester": "WS25_26",
-            "destination_base": "~/Documents/Uni/ERA",
-            "update": "rename",
+            "destination_base": "ERA",
             "config_type": "file_manual",
             "config": {
                 "rules": {
@@ -100,14 +96,14 @@
             "pattern": "Grundlagen: Betriebssysteme und Systemsoftware (IN0009)",
             "match_type": "literal",
             "semester": "WS25_26",
-            "destination_base": "~/Documents/Uni/GBS",
+            "destination_base": "GBS",
             "config_type": "file_auto"
         },
         {
             "pattern": "Grundlagen: Datenbanken (IN0008)",
             "match_type": "literal",
             "semester": "WS25_26",
-            "destination_base": "~/Documents/Uni/GDB",
+            "destination_base": "GDB",
             "update": "rename",
             "config_type": "file_manual",
             "config": {
@@ -131,7 +127,7 @@
             "pattern": "IT Sicherheit (IN0042)",
             "match_type": "literal",
             "semester": "WS25_26",
-            "destination_base": "~/Documents/Uni/ITSec",
+            "destination_base": "ITSec",
             "update": "rename",
             "config_type": "file_manual",
             "config": {

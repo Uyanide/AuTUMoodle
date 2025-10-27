@@ -3,35 +3,43 @@ import asyncio
 
 from .session import TUMMoodleSession, CourseInfo, ResourceCategory
 from .config_mgr import ConfigManager, CourseConfig, CourseConfigType
-from .utils import create_temp_file, PatternMatcher
+from .utils import create_temp_file, PatternMatcher, sanitize_filename
 from .log import Logger
 from .zip_extract import FileDownloadConfig, ZipExtractor
 
 
 class _CourseProcess():
+    _destination_base: Path
     _session: TUMMoodleSession
     _course_config: CourseConfig
     _course: CourseInfo
     _file_download_configs: list[FileDownloadConfig]
 
-    def __init__(self, session: TUMMoodleSession, course_config: CourseConfig, course: CourseInfo):
+    def __init__(self, session: TUMMoodleSession, course_config: CourseConfig, course: CourseInfo, global_destination_base: Path):
         self._session = session
         self._course_config = course_config
         self._course = course
         self._file_download_configs = []
 
+        if course_config.destination_base:
+            if course_config.destination_base.is_absolute():
+                self._destination_base = course_config.destination_base
+            else:
+                self._destination_base = global_destination_base / course_config.destination_base
+        else:
+            self._destination_base = global_destination_base / sanitize_filename(self._course.title)
+
     ########
     # Functions to get the filter function for each config type and build the download config map
 
     def _get_filter_func_auto(self, course_config: CourseConfig, respect_categories: bool = True):
-        dest_base = course_config.destination_base
 
         def filter_func(resource: list[ResourceCategory]) -> list[ResourceCategory]:
             for category in resource:
                 if respect_categories:
-                    directory = dest_base / category.title
+                    directory = self._destination_base / sanitize_filename(category.title)
                 else:
-                    directory = dest_base
+                    directory = self._destination_base
                 self._file_download_configs.append(FileDownloadConfig(
                     category_matcher=PatternMatcher(
                         category.title,
@@ -53,7 +61,6 @@ class _CourseProcess():
         return self._get_filter_func_auto(course_config, respect_categories=False)
 
     def _get_filter_func_category_manual(self, course_config: CourseConfig):
-        dest_base = course_config.destination_base
         cat_configs = course_config.categories
         file_configs = course_config.files
 
@@ -71,9 +78,9 @@ class _CourseProcess():
                     continue
                 # Default to category title if no destination is sepecified
                 cat_dest = matched_cat_config.destination if matched_cat_config.destination else Path(
-                    cat.title)
+                    sanitize_filename(cat.title))
                 if not cat_dest.is_absolute():
-                    cat_dest = dest_base / cat_dest
+                    cat_dest = self._destination_base / cat_dest
                 cat_update_type = matched_cat_config.update_type if matched_cat_config.update_type else course_config.update_type
                 new_resources = []
                 for file in cat.resources:
@@ -93,7 +100,7 @@ class _CourseProcess():
                             category_matcher=matched_cat_config.title_matcher,
                             name_matcher=matched_file_config.name_matcher,
                             ignore=True,
-                            directory=dest_base / cat_dest,
+                            directory=self._destination_base / cat_dest,
                             update_type=course_config.update_type
                         ))
                         continue
@@ -101,9 +108,10 @@ class _CourseProcess():
                     # Determine destination
                     file_dest = matched_file_config.directory if matched_file_config.directory else cat_dest
                     if not file_dest.is_absolute():
-                        directory = dest_base / file_dest
+                        directory = self._destination_base / file_dest
                     else:
                         directory = file_dest
+                    directory = Path(sanitize_filename(directory, allow_separators=True))
                     # Add download config
                     self._file_download_configs.append(FileDownloadConfig(
                         category_matcher=matched_cat_config.title_matcher,
@@ -118,14 +126,13 @@ class _CourseProcess():
                     category_matcher=matched_cat_config.title_matcher,
                     name_matcher=None,
                     ignore=False,
-                    directory=dest_base / cat_dest,
+                    directory=self._destination_base / cat_dest,
                     update_type=course_config.update_type
                 ))
             return resource
         return filter_func
 
     def _get_filter_func_file_manual(self, course_config: CourseConfig):
-        dest_base = course_config.destination_base
         file_configs = course_config.files
 
         def filter_func(resource: list[ResourceCategory]) -> list[ResourceCategory]:
@@ -154,15 +161,16 @@ class _CourseProcess():
                     category_matcher=None,
                     name_matcher=file_config.name_matcher,
                     ignore=True,
-                    directory=dest_base,
+                    directory=self._destination_base,
                     update_type=course_config.update_type
                 ))
             # Determine destination
             file_dest = file_config.directory if file_config.directory else Path(".")
             if not file_dest.is_absolute():
-                destination = dest_base / file_dest
+                destination = self._destination_base / file_dest
             else:
                 destination = file_dest
+            destination = Path(sanitize_filename(destination, allow_separators=True))
             # Add download config
             self._file_download_configs.append(FileDownloadConfig(
                 category_matcher=None,
@@ -245,7 +253,7 @@ class TUMMoodleDownloader():
                 Logger.d("Downloader", f"Skipping course '{course.title}': no matching config found")
                 return
 
-            await _CourseProcess(self._session, course_config, course=course).proc()
+            await _CourseProcess(self._session, course_config, course=course, global_destination_base=self._config.destination_base).proc()
         except Exception as e:
             Logger.e("Downloader", f"Error downloading from course '{course.title}': {e}")
 
