@@ -1,14 +1,12 @@
 from contextlib import asynccontextmanager
 
-from .session_requests import TUMMoodleSession as SessionRequests
-from .session_playwright import TUMMoodleSession as SessionPlaywright
-
 from .config_mgr import Config
 
 
 @asynccontextmanager
 async def TUMMoodleSessionBuilder(config: Config):
     if config.session_type == "requests":
+        from .session_requests import TUMMoodleSession as SessionRequests
         async with SessionRequests(
             config.username,
             config.password,
@@ -16,6 +14,7 @@ async def TUMMoodleSessionBuilder(config: Config):
         ) as session:
             yield session
     elif config.session_type == "playwright":
+        from .session_playwright import TUMMoodleSession as SessionPlaywright
         async with SessionPlaywright(
             config.username,
             config.password,

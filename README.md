@@ -2,6 +2,84 @@
 
 > stands for Auto - TUM - Moodle. I'm not that good at naming, I know...
 
+## How to Use
+
+0.  Prerequisites:
+
+    - [uv](https://docs.astral.sh/uv/) (or Python 3.12+ and pip)
+    - Git (or manually download the source code as a zip file and extract it)
+
+1.  Clone this repository:
+
+    ```sh
+    git clone https://github.com/Uyanide/AuTUMoodle.git --depth 1
+    ```
+
+    or download the source code as a zip file from Github and extract to a local directory.
+
+2.  Prepare virtual environment (optional but recommended):
+
+    - Using `uv` (recommanded):
+
+    ```sh
+    uv venv .venv
+    source .venv/bin/activate  # Or other commands depending on your OS and shell
+    ```
+
+    - Using `venv` (built-in Python module):
+
+    ```sh
+    python -m venv .venv
+    source .venv/bin/activate  # Or other commands depending on your OS and shell
+    ```
+
+3.  Install dependencies:
+
+    - Using `uv` (recommanded):
+
+    ```sh
+    uv sync
+    ```
+
+    - Using `pip`:
+
+    ```sh
+    pip install -r requirements.txt
+    ```
+
+    - or manually:
+
+      - for logs:
+
+      ```sh
+      pip install loguru
+      ```
+
+      and depending on the session manager implementation you want to use:
+
+      - for `requests` session manager (better performance, but may break in the future):
+
+      ```sh
+      pip install httpx beautifulsoup4
+      ```
+
+      - for `playwright` session manager (more robust, but much heavier):
+
+      ```sh
+      pip install playwright
+      playwright install
+      ```
+
+4.  Prepare the configuration files:
+
+    > see [Config](#config) for details.
+
+5.  Run the CLI tool:
+
+    ```sh
+    python -m autumoodle -c path/to/config.json -s path/to/credentials.json
+    ```
+
 ## Config
 
 Configurations are passed via two `json` files:
@@ -136,7 +214,7 @@ These two files can have whatever name you like and be placed wherever you want,
 
   implementation of the session manager to use when logging and retrieving files from Moodle. Possible values are:
 
-  - `requests`: uses the [httpx](https://www.python-httpx.org/) library to make HTTP requests. Lightweight, fast, but may soon not work if the procedure of Shibboleth SSO login used by TUM Moodle changes some day (like many other similar tools out there).
+  - `requests`: uses the [httpx](https://www.python-httpx.org/) library to make HTTP requests. Lightweight, fast, but may soon break if the procedure of Shibboleth SSO login used by TUM Moodle changes some day (like many other similar tools out there).
 
   - `playwright`: uses the [Playwright](https://playwright.dev/) library to automate browser interactions. Although it can be used to bypass the complicated (manual) Shibboleth SSO logins, it remains to be a rather "heavy" solution since this literally runs a browser (firefox by default) in the background.
 
@@ -174,7 +252,7 @@ These two files can have whatever name you like and be placed wherever you want,
 
 > [!NOTE]
 >
-> My example can be found [here](https://www.youtube.com/watch?v=dQw4w9WgXcQ) :)
+> An example from myself can be found [here](https://www.youtube.com/watch?v=dQw4w9WgXcQ) :)
 
 - `username` (essential)
 
