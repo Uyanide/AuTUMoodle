@@ -68,13 +68,17 @@ class TUMMoodleSession(smgr.TUMMoodleSession):
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         Logger.d("TUMMoodleSession", "Saving session to storage...")
-        self._save_session()
+        try:
+            self._save_session()
+        except Exception as e:
+            Logger.e("TUMMoodleSession", f"Failed to save session: {e}")
         Logger.d("TUMMoodleSession", "Closing session...")
         await self._client.aclose()
         Logger.d("TUMMoodleSession", "Session closed.")
 
     def _save_session(self):
         if self._storage_state_path:
+            self._storage_state_path.parent.mkdir(parents=True, exist_ok=True)
             # The cookie jar contains a lock, which is not pickleable.
             # We extract the cookies into a list, which is.
             cookies_list = list(self._client.cookies.jar)
@@ -113,7 +117,10 @@ class TUMMoodleSession(smgr.TUMMoodleSession):
 
     async def _login(self):
         await auth(self._client, self._username, self._password)
-        self._save_session()
+        try:
+            self._save_session()
+        except Exception as e:
+            Logger.e("TUMMoodleSession", f"Failed to save session after login: {e}")
 
     async def get_courses(self, show_hidden: bool) -> list[smgr.CourseInfo]:
         try:
