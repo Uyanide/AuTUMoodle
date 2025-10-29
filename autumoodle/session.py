@@ -1,33 +1,35 @@
-import asyncio
 from playwright.async_api import async_playwright, Playwright, Browser, Page, BrowserContext, Locator, Download
-from os import environ
 from dataclasses import dataclass
 from pathlib import Path
 
 from .log import Logger
 from . import utils
 
+# autopep8: off
 # There are 3 kinds of login pages:
 # - The actual login page with input fields for username & password
-TUM_LOGIN_URL = "https://login.tum.de"  # with subpath like /idp/profile/SAML2/Redirect/SSO and a param like execution=e1s1
+def TUM_LOGIN_URL(): return "https://login.tum.de"  # with subpath like /idp/profile/SAML2/Redirect/SSO and a param like execution=e1s1
 # - Main page (before login) with 3 buttons (actually <a/> tags) (With TUM ID, With LMU ID, Guest (without ID))
 #   Clicking on "With TUM ID" redirects to ${TUM_LOGIN_URL}/...
-MOODLE_URL = "https://www.moodle.tum.de"
+# MOODLE_URL = "https://www.moodle.tum.de"
+def MOODLE_URL(): return "https://www.moodle.tum.de"
 # - "Log in to TUM-Moodle" page with 3 links (TUM LOGIN, LMU LOGIN, DFN-AAI LOGIN)
 #   Clicking on "TUM LOGIN" redirects to ${TUM_LOGIN_URL}/...
-MOODLE_LOGIN_URL = f"{MOODLE_URL}/login/index.php"
+def MOODLE_LOGIN_URL(): return f"{MOODLE_URL()}/login/index.php"
 
 # the param "courseid" should be appended along with the actual course id from COURSES_PAGE_URL
-DOWNLOAD_CENTER_URL = f"{MOODLE_URL}/local/downloadcenter/index.php"
+def DOWNLOAD_CENTER_URL(course_id): return f"{MOODLE_URL()}/local/downloadcenter/index.php?courseid={course_id}"
 
 # coc-manage=1 enables "Ausgeblendete Kurse verwalten" that shows all courses
-COURSES_PAGE_URL = f"{MOODLE_URL}/my/?coc-manage="
+def COURSES_PAGE_URL(show_hidden): return f"{MOODLE_URL()}/my/?coc-manage={'1' if show_hidden else '0'}"
+# autopep8: on
+
 
 TIMEOUT = 30  # in seconds
 
 
-# Describes a downloadable resource in the download center
-@dataclass
+# describes a downloadable resource in the download center
+@dataclass(frozen=True, slots=True)
 class ResourceInfo:
     id: str  # numeric
     filename: str  # filename without "Dateien mit ursprünglichem Dateinamen herunterladen"
@@ -37,15 +39,16 @@ class ResourceInfo:
     _div: Locator  # the "form-check" div
 
 
-# Describes a category of downloadable resources
-@dataclass
+# describes a category of downloadable resources
+# can be edited by filter functions, so not frozen
+@dataclass(slots=True)
 class ResourceCategory:
     title: str  # e.g. "Übungen"
     resources: list[ResourceInfo]
 
 
-# Describes a class/course in Moodle
-@dataclass
+# describes a class/course in Moodle
+@dataclass(frozen=True, slots=True)
 class CourseInfo:
     id: str  # numeric
     # One entry on www.moodle.tum.de/my should be like:
@@ -62,25 +65,28 @@ class TUMMoodleSession:
     _username: str
     _password: str
     _headless: bool
+    _browser_name: str
     _storage_state_path: Path | None
+    _show_hidden_courses: bool
 
     # Playwright objects
     _async_playwright: Playwright
     _browser: Browser
     _context: BrowserContext
 
-    def __init__(self, username, password, headless=True, storage_state_path: Path | None = None):
+    def __init__(self, username, password, headless=True, browser="firefox", storage_state_path: Path | None = None):
         '''Initialize TUMMoodleSession with credentials without starting the browser.'''
         self._username = username
         self._password = password
         self._headless = headless
+        self._browser_name = browser
         self._storage_state_path = storage_state_path
 
-    async def __aenter__(self, browser="firefox"):
+    async def __aenter__(self):
         '''Start the Playwright browser and create a new page.'''
         Logger.d("TUMMoodleSession", "Launching the browser...")
         self._async_playwright = await async_playwright().start()
-        self._browser = await self._async_playwright[browser].launch(headless=self._headless)
+        self._browser = await self._async_playwright[self._browser_name].launch(headless=self._headless)
 
         if self._storage_state_path and self._storage_state_path.exists():
             Logger.d("TUMMoodleSession", f"Using saved session from {self._storage_state_path}")
@@ -91,7 +97,7 @@ class TUMMoodleSession:
         Logger.d("TUMMoodleSession", "Browser has been launched.")
         try:
             Logger.d("TUMMoodleSession", "Attempting the first login...")
-            page = await self._create_page(COURSES_PAGE_URL)
+            page = await self._create_page(COURSES_PAGE_URL(False))
             await page.close()
             Logger.d("TUMMoodleSession", "Initial login attempt finished.")
         except Exception as e:
@@ -135,14 +141,14 @@ class TUMMoodleSession:
     async def _check_login(self, page: Page) -> bool:
         '''Check if current page is one of the known login pages, and perform login if needed.'''
         Logger.d("TUMMoodleSession", f"Checking login status on page: {page.url}")
-        if page.url.startswith(TUM_LOGIN_URL):
+        if page.url.startswith(TUM_LOGIN_URL()):
             Logger.d("TUMMoodleSession", "TUM login page detected, attempting login...")
             return await self._login(page)
-        elif page.url.startswith(MOODLE_LOGIN_URL):
+        elif page.url.startswith(MOODLE_LOGIN_URL()):
             try:
                 Logger.d("TUMMoodleSession", "Moodle login page detected, attempting login...")
                 await page.locator('a[title="TUM LOGIN"]').click()
-                await page.wait_for_url(utils.check_prefix(TUM_LOGIN_URL), timeout=TIMEOUT * 1000)
+                await page.wait_for_url(utils.check_prefix(TUM_LOGIN_URL()), timeout=TIMEOUT * 1000)
                 return await self._login(page)
             except Exception as e:
                 Logger.e("TUMMoodleSession", f"Failed to login via Moodle: {e}")
@@ -151,7 +157,7 @@ class TUMMoodleSession:
             try:
                 Logger.d("TUMMoodleSession", "Moodle main login page detected, attempting login...")
                 await page.locator('a:has-text("With TUM ID")').click()
-                await page.wait_for_url(utils.check_prefix(TUM_LOGIN_URL), timeout=TIMEOUT * 1000)
+                await page.wait_for_url(utils.check_prefix(TUM_LOGIN_URL()), timeout=TIMEOUT * 1000)
                 return await self._login(page)
             except Exception as e:
                 Logger.e("TUMMoodleSession", f"Failed to login via Moodle main page: {e}")
@@ -162,7 +168,7 @@ class TUMMoodleSession:
     async def _login(self, page: Page) -> bool:
         '''Perform login on the TUM login page and wait until redirected back to Moodle.'''
         Logger.d("TUMMoodleSession", f"Attempting login on page: {page.url}")
-        if not page.url.startswith(TUM_LOGIN_URL):
+        if not page.url.startswith(TUM_LOGIN_URL()):
             Logger.w("TUMMoodleSession", "Not on TUM login page, login aborted.")
             return False
         try:
@@ -172,7 +178,7 @@ class TUMMoodleSession:
             await page.locator('input[name="j_password"]').fill(self._password)
             await page.locator('button[type="submit"]').click()
             Logger.d("TUMMoodleSession", "Submitted login form, waiting for redirect...")
-            await page.wait_for_url(utils.check_prefix(MOODLE_URL), timeout=TIMEOUT * 1000)
+            await page.wait_for_url(utils.check_prefix(MOODLE_URL()), timeout=TIMEOUT * 1000)
             Logger.d("TUMMoodleSession", "Successfully logged in.")
             Logger.d("TUMMoodleSession", "Saving session state after login...")
             await self._save_storage_state()
@@ -186,7 +192,7 @@ class TUMMoodleSession:
         home_page = None
         try:
             Logger.d("TUMMoodleSession", "Retrieving courses from Meine Startseite...")
-            home_page = await self._create_page(f"{COURSES_PAGE_URL}{'1' if show_hidden else '0'}")
+            home_page = await self._create_page(COURSES_PAGE_URL(show_hidden))
             links = home_page.locator('div.coursebox h3 a')
             courses = []
             count = await links.count()
@@ -262,7 +268,7 @@ class TUMMoodleSession:
             item_idx = j
             parsed_item = await self._parse_download_form_entry(item)
             if parsed_item:
-                Logger.d("TUMMoodleSession", f"Found resource: {parsed_item.filename} (ID: {parsed_item.id})")
+                Logger.i("TUMMoodleSession", f"Found resource: {parsed_item.filename} (ID: {parsed_item.id})")
                 resource_items.append(parsed_item)
             else:
                 Logger.d("TUMMoodleSession", f"Failed to parse resource item at index {item_idx} in card '{title}'.")
@@ -289,7 +295,7 @@ class TUMMoodleSession:
         page = None
         try:
             Logger.d("TUMMoodleSession", f"Downloading archives for course {course_id}...")
-            download_url = f"{DOWNLOAD_CENTER_URL}?courseid={course_id}"
+            download_url = DOWNLOAD_CENTER_URL(course_id)
             page = await self._create_page(download_url)
             await self._check_login(page)
 
@@ -330,29 +336,3 @@ class TUMMoodleSession:
         finally:
             if page:
                 await page.close()
-
-
-def _create_session(headless: bool = True) -> TUMMoodleSession:
-    username = environ.get("TUM_USERNAME")
-    password = environ.get("TUM_PASSWORD")
-    return TUMMoodleSession(username, password, headless=headless, storage_state_path=Path("~/.cache/autumoodle/session_storage.json").expanduser())
-
-
-async def _main():
-    Logger.set_level("DEBUG")
-    session = _create_session(True)
-    async with session as sess:
-        courses = await sess.get_courses(False)
-        for course in courses:
-            print(f"Course: {course.title} (ID: {course.id})")
-            print(f"  Metainfo: {course.metainfo}")
-
-            if "MA0902" in course.title:
-                with utils.create_temp_file(suffix=".zip") as tmpfile:
-                    archive_path = await sess.download_archive(course.id, tmpfile, filter=utils.passthrough)
-                    print(f"  Archive downloaded to: {archive_path}")
-        await asyncio.sleep(30)
-
-
-if __name__ == "__main__":
-    asyncio.run(_main())

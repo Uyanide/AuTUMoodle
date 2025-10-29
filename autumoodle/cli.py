@@ -5,7 +5,7 @@ import json
 from autumoodle.downloader import TUMMoodleDownloader
 
 from .log import Logger
-from .config_mgr import ConfigManager
+from .config_mgr import Config
 from . import credential
 
 
@@ -23,7 +23,7 @@ async def run():
     if not config_path.exists() or not config_path.is_file():
         raise FileNotFoundError(f"Configuration file not found: {config_path}")
     config_dict = json.loads(config_path.read_text())
-    config = ConfigManager(config_dict)
+    config = Config.from_dict(config_dict)
     Logger.set_level(config.log_level)
 
     username, password = credential.get_credentials(Path(args.secret_path) if args.secret_path else None)

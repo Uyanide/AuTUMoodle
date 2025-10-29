@@ -2,7 +2,7 @@ from pathlib import Path
 import asyncio
 
 from .session import TUMMoodleSession, CourseInfo, ResourceCategory
-from .config_mgr import ConfigManager, CourseConfig, CourseConfigType
+from .config_mgr import Config, CourseConfig, CourseConfigType
 from .utils import create_temp_file, PatternMatcher, sanitize_filename
 from .log import Logger
 from .zip_extract import FileDownloadConfig, ZipExtractor
@@ -220,15 +220,16 @@ class _CourseProcess():
 class TUMMoodleDownloader():
     _session_builder: TUMMoodleSession
     _session: TUMMoodleSession
-    _config: ConfigManager
+    _config: Config
 
-    def __init__(self, config: ConfigManager):
+    def __init__(self, config: Config):
         if not config.username or not config.password:
             raise ValueError("Username and password must be provided in the config")
         self._session_builder = TUMMoodleSession(
             config.username,
             config.password,
-            headless=True,
+            headless=config.playwright_headless,
+            browser=config.playwright_browser,
             storage_state_path=None if not config.session_save or not config.session_save_path else config.session_save_path
         )
         self._config = config

@@ -2,13 +2,14 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 import shutil
+import os
 from zipfile import ZipFile
 
 from .config_mgr import UpdateType
 from .utils import create_temp_dir, PatternMatcher
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class FileDownloadConfig:
     category_matcher: PatternMatcher | None
     name_matcher: PatternMatcher | None
@@ -34,12 +35,10 @@ class ZipExtractor:
             return config
         return None
 
-    def _copy_with_stat(self, src: Path, dest: Path):
+    def _copy_with_timestamp(self, src: Path, dest: Path, timestamp: float | None = None):
         shutil.copy2(src, dest)
-        try:
-            shutil.copystat(src, dest)
-        except OSError:
-            pass
+        if timestamp is not None:
+            os.utime(dest, (timestamp, timestamp))
 
     def extract_files(self, file_download_configs: list[FileDownloadConfig]):
         with create_temp_dir(prefix="autumoodle_zip_extract_") as temp_dir:
@@ -82,7 +81,7 @@ class ZipExtractor:
                         continue
 
                     if update_type == UpdateType.OVERWRITE:
-                        self._copy_with_stat(temp_path, destination_path)
+                        self._copy_with_timestamp(temp_path, destination_path, zip_mtime)
                     elif update_type == UpdateType.RENAME:
                         final_path = Path(destination_path)
                         counter = 1
@@ -90,10 +89,10 @@ class ZipExtractor:
                             final_path = destination_path.with_name(
                                 f"{destination_path.stem}_{counter}{destination_path.suffix}")
                             counter += 1
-                        self._copy_with_stat(temp_path, final_path)
+                        self._copy_with_timestamp(temp_path, final_path, zip_mtime)
                     elif update_type == UpdateType.SKIP:
                         if destination_path.exists():
                             continue
-                        self._copy_with_stat(temp_path, destination_path)
+                        self._copy_with_timestamp(temp_path, destination_path, zip_mtime)
                     else:
                         raise ValueError(f"Unknown update type: {update_type}")
