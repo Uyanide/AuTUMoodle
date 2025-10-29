@@ -110,10 +110,9 @@ class _CourseProcess():
                     # Determine destination
                     file_dest = matched_file_config.directory if matched_file_config.directory else cat_dest
                     if not file_dest.is_absolute():
-                        directory = self._destination_base / file_dest
+                        directory = self._destination_base / sanitize_filename(file_dest, allow_separators=True)
                     else:
                         directory = file_dest
-                    directory = Path(sanitize_filename(directory, allow_separators=True))
                     # Add download config
                     self._file_download_configs.append(FileDownloadConfig(
                         category_matcher=matched_cat_config.title_matcher,
@@ -169,10 +168,9 @@ class _CourseProcess():
             # Determine destination
             file_dest = file_config.directory if file_config.directory else Path(".")
             if not file_dest.is_absolute():
-                destination = self._destination_base / file_dest
+                destination = self._destination_base / sanitize_filename(file_dest, allow_separators=True)
             else:
                 destination = file_dest
-            destination = Path(sanitize_filename(destination, allow_separators=True))
             # Add download config
             self._file_download_configs.append(FileDownloadConfig(
                 category_matcher=None,

@@ -77,6 +77,7 @@ class PatternMatcher:
     class MatchType(Enum):
         LITERAL = "literal"
         REGEX = "regex"
+        CONTAINS = "contains"
 
     match: Callable[[str], bool]
 
@@ -88,9 +89,11 @@ class PatternMatcher:
                 raise ValueError(f"Invalid match_type: '{match_type}'. Must be one of {[e.value for e in self.MatchType]}")
 
         if match_type == self.MatchType.LITERAL:
-            self.match = partial(self._match_literal, pattern)
+            self.match = partial(PatternMatcher._match_literal, pattern)
         elif match_type == self.MatchType.REGEX:
-            self.match = partial(self._match_regex, re.compile(pattern))
+            self.match = partial(PatternMatcher._match_regex, re.compile(pattern))
+        elif match_type == self.MatchType.CONTAINS:
+            self.match = partial(PatternMatcher._match_contains, pattern)
         else:
             raise ValueError(f"Unsupported match_type: {match_type}")
 
@@ -101,3 +104,7 @@ class PatternMatcher:
     @staticmethod
     def _match_regex(pattern: re.Pattern, text: str) -> bool:
         return bool(pattern.search(text))
+
+    @staticmethod
+    def _match_contains(substring: str, text: str) -> bool:
+        return substring in text

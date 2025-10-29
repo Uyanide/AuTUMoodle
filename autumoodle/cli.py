@@ -22,7 +22,7 @@ async def run():
     config_path = Path(args.config_path).expanduser()
     if not config_path.exists() or not config_path.is_file():
         raise FileNotFoundError(f"Configuration file not found: {config_path}")
-    config_dict = json.loads(config_path.read_text())
+    config_dict = json.loads(config_path.read_text(encoding="utf-8"))
     config = Config.from_dict(config_dict)
     Logger.set_level(config.log_level)
 

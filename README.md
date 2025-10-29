@@ -9,9 +9,11 @@ Configurations are passed via two `json` files:
 - `config.json`: contains general configurations such as what to download, where to save, etc.
 - `credentials.json`: contains login credentials, i.e. username and password.
 
+These two files can have whatever name you like and be placed wherever you want, as long as the correct paths are provided via the `-c/--config` and `-s/--secret` arguments respectively when running the CLI tool
+
 > [!IMPORTANT]
 >
-> Both files can have whatever name you like and be placed wherever you want, as long as the correct paths are provided when running the CLI tool via the `-c/--config` and `-s/--secret` arguments respectively.
+> Both files should be encoded in UTF-8 to avoid potential issues with special characters. This is especially important for running on Windows systems.
 
 > [!NOTE]
 >
@@ -26,7 +28,7 @@ Configurations are passed via two `json` files:
 
 > [!NOTE]
 >
-> An example can be found [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config.json).
+> Examples can be found [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config.json)(for Linux) and [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config-win.json)(for Windows).
 
 - `destination_base`
 
@@ -188,12 +190,9 @@ Configurations are passed via two `json` files:
 
   - `literal`: exact string match
   - `regex`: regular expression match
+  - `contains`: substring match
 
 - `pattern` is the string or regular expression to match against.
-
-> [!NOTE]
->
-> For `contains` mode, please use the `regex` mode with `pattern` set to `.*<your_substring>.*` or `<your_substring>` to achieve the same effect. Be aware of special characters in regex patterns.
 
 ## Updating Methods
 
