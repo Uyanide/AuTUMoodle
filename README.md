@@ -53,7 +53,7 @@ Configurations are passed via two `json` files:
 
     - `update` (optional, default: `rename`)
 
-        determines how updated files are handled when there are already older versions of the same file existing in the destination directory. See [Updating Methods](#updating-methods) for details.
+        determines how updated files are handled when there are already older versions of the same file existing in the destination directory. See [updating methods](#updating-methods) for details.
 
     - `config_type` (optional, default: `category_auto`)
 
@@ -99,7 +99,7 @@ Configurations are passed via two `json` files:
 
         - `update` (optional)
 
-            if not provided, the course's `update` method will be used. See [Updating Methods](#updating-methods) for details.
+            if not provided, the course's `update` method will be used. See [updating methods](#updating-methods) for details.
 
     - `config.rules.files`
 
@@ -121,7 +121,7 @@ Configurations are passed via two `json` files:
 
         - `update` (optional)
 
-            if not provided, the course's `update` method will be used. See [Updating Methods](#updating-methods) for details.
+            if not provided, the course's `update` method will be used. See [updating methods](#updating-methods) for details.
 
 
 - `log_level` (optional, default: `INFO`)
@@ -138,7 +138,7 @@ Configurations are passed via two `json` files:
 
     - `requests`: uses the [httpx](https://www.python-httpx.org/) library to make HTTP requests. Lightweight, fast, but may soon not work if the procedure of Shibboleth SSO login used by TUM Moodle changes some day (like many other similar tools out there).
 
-    - `playwright`: uses the [Playwright](https://playwright.dev/) library to automate browser interactions. Although it can be used to bypass the complicated (manual) Shibboleth SSO logins, it remains to be a rather "heavy" and "slow" solution since this literally runs a browser (firefox by default) in the background.
+    - `playwright`: uses the [Playwright](https://playwright.dev/) library to automate browser interactions. Although it can be used to bypass the complicated (manual) Shibboleth SSO logins, it remains to be a rather "heavy" solution since this literally runs a browser (firefox by default) in the background.
 
     Both implementations are using asynchronous APIs under the hood, so the performance difference in practice may not be that significant.
 
@@ -162,7 +162,7 @@ Configurations are passed via two `json` files:
 
 - `session` (optional)
 
-    additional configurations for the session manager.
+    additional configurations for the session manager, works for both `requests` and `playwright` session types.
 
     - `save` (optional, default: `false`)
 
