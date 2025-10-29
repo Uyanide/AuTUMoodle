@@ -1,0 +1,60 @@
+{
+    "destination_base": "D:/1-TUM/Info",
+    "courses": [
+        {
+            "pattern": "Analysis für Informatik",
+            "match_type": "regex",
+            "semester": "WS25_26",
+            "destination_base": "AnaFI",
+            "update": "rename",
+            "config_type": "category_manual",
+            "config": {
+                "rules": {
+                    "categories": [
+                        {
+                            "pattern": "Übungen",
+                            "match_type": "literal"
+                        },
+                        {
+                            "pattern": "Aufgabenabgabe",
+                            "match_type": "literal"
+                        },
+                        {
+                            "pattern": ".*",
+                            "match_type": "regex",
+                            "destination": "Sonstiges"
+                        }
+                    ],
+                    "files": [
+                        {
+                            "pattern": "Übungsgruppen",
+                            "match_type": "regex",
+                            "ignore": true
+                        },
+                        {
+                            "pattern": "Abgabe Blatt",
+                            "match_type": "regex",
+                            "ignore": true
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "cache_dir": "D:/1-TUM/.cache",
+    "session_type": "requests",
+    "playwright": {
+        "browser": "firefox",
+        "headless": true
+    },
+    "summary": {
+        "enabled": true,
+        "path": "D:/1-TUM/.cache/summaries",
+        "expire_days": 7
+    },
+    "session": {
+        "save": true,
+        "save_path": "D:/1-TUM/.cache/session.dat"
+    },
+    "log_level": "DEBUG"
+}

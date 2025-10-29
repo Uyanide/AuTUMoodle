@@ -30,131 +30,127 @@ Configurations are passed via two `json` files:
 
 - `destination_base`
 
-    **ESSENTIAL**, the base directory where all downloaded course materials will be saved to. Each course will get its own sub-directory inside this base directory by default.
+  **ESSENTIAL**, the base directory where all downloaded course materials will be saved to. Each course will get its own sub-directory inside this base directory by default.
 
--  `courses`
+- `courses`
 
-    a list of json objects, each representing a course to download from. ONLY the courses configured here will be processed.
+  a list of json objects, each representing a course to download from. ONLY the courses configured here will be processed.
+
+  - `pattern` and `match_type` (essential)
+
+    matches the title of the course. See [pattern matching](#pattern-matching) for how this works.
+
+  - `semester` (essential)
+
+    the semester of the course, e.g. WS25_26, SS26, etc.
+
+  - `destination_base` (optional)
+
+    the base directory where this specific course's materials will be saved to. Case a relative path, it is relative to the global `destination_base`.
+
+    If not provided, the global `destination_base` with a sub-directory named after the course title will be used.
+
+  - `update` (optional, default: `rename`)
+
+    determines how updated files are handled when there are already older versions of the same file existing in the destination directory. See [updating methods](#updating-methods) for details.
+
+  - `config_type` (optional, default: `category_auto`)
+
+    determines how the course materials are organized in the destination directory. There are currently four options:
+
+    - `category_auto`
+
+      materials are organized into sub-directories based on their categories as defined in Moodle (e.g. Vorlesungen, Übungen, etc.). This is done automatically.
+
+    - `category_manual`
+
+      only the categories that matches one of the rules in the `config.rules.categories` will be processed, and the materials that matches one of the rules in `config.rules.files` will be specifically processed.
+
+    - `file_auto`
+
+      all materials are placed directly in the `destination_base` directory.
+
+    - `file_manual`
+
+      only the files that matches one of the rules in `config.rules.files` will be processed.
+
+  - `config` (optional based on `config_type`)
+
+    additional configuration based on the selected `config_type`.
+
+    - for `category_auto` and `file_auto`, this field is ignored.
+    - for `files_manual`, only `rules.files` is considered.
+    - for `category_manual`, both `rules.categories` and `rules.files` are considered.
+
+  - `config.rules.categories`
+
+    a list of json objects, each representing a rule to match categories in the course. Each rule has the following fields:
 
     - `pattern` and `match_type` (essential)
 
-        matches the title of the course. See [pattern matching](#pattern-matching) for how this works.
+      matches the title of the category. See [pattern matching](#pattern-matching) for how this works.
 
-    - `semester` (essential)
+    - `destination` (optional)
 
-        the semester of the course, e.g. WS25_26, SS26, etc.
+      the directory where the materials in this category will be saved to. Case a relative path, it is relative to the course's `destination_base`.
 
-    - `destination_base` (optional)
+      If not provided, the category title will be used as the sub-directory name inside the course's `destination_base`.
 
-        the base directory where this specific course's materials will be saved to. Case a relative path, it is relative to the global `destination_base`.
+    - `update` (optional)
 
-        If not provided, the global `destination_base` with a sub-directory named after the course title will be used.
+      if not provided, the course's `update` method will be used. See [updating methods](#updating-methods) for details.
 
+  - `config.rules.files`
 
-    - `update` (optional, default: `rename`)
+    a list of json objects, each representing a rule to match files in the course. Each rule has the following fields:
 
-        determines how updated files are handled when there are already older versions of the same file existing in the destination directory. See [updating methods](#updating-methods) for details.
+    - `pattern` and `match_type` (essential)
 
-    - `config_type` (optional, default: `category_auto`)
+      matches the title of the file. See [pattern matching](#pattern-matching) for how this works.
 
-        determines how the course materials are organized in the destination directory. There are currently four options:
+    - `ignore` (optional, default: `false`)
 
-        - `category_auto`
+      if set to `true`, files that matches this rule will be ignored.
 
-            materials are organized into sub-directories based on their categories as defined in Moodle (e.g. Vorlesungen, Übungen, etc.). This is done automatically.
+    - `directory` (optional)
 
-        - `category_manual`
+      the directory where this file will be saved to. Case a relative path, it is relative to the course's `destination_base`.
 
-            only the categories that matches one of the rules in the `config.rules.categories` will be processed, and the materials that matches one of the rules in `config.rules.files` will be specifically processed.
+      If not provided, the file will be saved directly in the course's `destination_base` if in `file_manual` mode, or in the corresponding category directory if in `category_manual` mode.
 
-        - `file_auto`
+    - `update` (optional)
 
-            all materials are placed directly in the `destination_base` directory.
-
-        - `file_manual`
-
-            only the files that matches one of the rules in `config.rules.files` will be processed.
-
-    - `config` (optional based on `config_type`)
-
-        additional configuration based on the selected `config_type`.
-
-        - for `category_auto` and `file_auto`, this field is ignored.
-        - for `files_manual`, only `rules.files` is considered.
-        - for `category_manual`, both `rules.categories` and `rules.files` are considered.
-
-    - `config.rules.categories`
-
-        a list of json objects, each representing a rule to match categories in the course. Each rule has the following fields:
-
-        - `pattern` and `match_type` (essential)
-
-            matches the title of the category. See [pattern matching](#pattern-matching) for how this works.
-
-        - `destination` (optional)
-
-            the directory where the materials in this category will be saved to. Case a relative path, it is relative to the course's `destination_base`.
-
-            If not provided, the category title will be used as the sub-directory name inside the course's `destination_base`.
-
-        - `update` (optional)
-
-            if not provided, the course's `update` method will be used. See [updating methods](#updating-methods) for details.
-
-    - `config.rules.files`
-
-        a list of json objects, each representing a rule to match files in the course. Each rule has the following fields:
-
-        - `pattern` and `match_type` (essential)
-
-            matches the title of the file. See [pattern matching](#pattern-matching) for how this works.
-
-        - `ignore` (optional, default: `false`)
-
-            if set to `true`, files that matches this rule will be ignored.
-
-        - `directory` (optional)
-
-            the directory where this file will be saved to. Case a relative path, it is relative to the course's `destination_base`.
-
-            If not provided, the file will be saved directly in the course's `destination_base` if in `file_manual` mode, or in the corresponding category directory if in `category_manual` mode.
-
-        - `update` (optional)
-
-            if not provided, the course's `update` method will be used. See [updating methods](#updating-methods) for details.
-
+      if not provided, the course's `update` method will be used. See [updating methods](#updating-methods) for details.
 
 - `log_level` (optional, default: `INFO`)
 
-    the log level of the CLI tool. Possible values are: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`.
+  the log level of the CLI tool. Possible values are: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`.
 
 - `cache_dir` (optional, default: `~/.cache/autumoodle`)
 
-    the directory where cached files will be stored.
+  the directory where cached files will be stored.
 
 - `session_type` (optional, default: `requests`)
 
-    implementation of the session manager to use when logging and retrieving files from Moodle. Possible values are:
+  implementation of the session manager to use when logging and retrieving files from Moodle. Possible values are:
 
-    - `requests`: uses the [httpx](https://www.python-httpx.org/) library to make HTTP requests. Lightweight, fast, but may soon not work if the procedure of Shibboleth SSO login used by TUM Moodle changes some day (like many other similar tools out there).
+  - `requests`: uses the [httpx](https://www.python-httpx.org/) library to make HTTP requests. Lightweight, fast, but may soon not work if the procedure of Shibboleth SSO login used by TUM Moodle changes some day (like many other similar tools out there).
 
-    - `playwright`: uses the [Playwright](https://playwright.dev/) library to automate browser interactions. Although it can be used to bypass the complicated (manual) Shibboleth SSO logins, it remains to be a rather "heavy" solution since this literally runs a browser (firefox by default) in the background.
+  - `playwright`: uses the [Playwright](https://playwright.dev/) library to automate browser interactions. Although it can be used to bypass the complicated (manual) Shibboleth SSO logins, it remains to be a rather "heavy" solution since this literally runs a browser (firefox by default) in the background.
 
-    Both implementations are using asynchronous APIs under the hood, so the performance difference in practice may not be that significant.
-
+  Both implementations are using asynchronous APIs under the hood, so the performance difference in practice may not be that significant.
 
 - `playwright` (optional, only used when `session_type` is `playwright`)
 
-    additional configurations for the Playwright session manager.
+  additional configurations for the Playwright session manager.
 
-    - `browser` (optional, default: `firefox`)
+  - `browser` (optional, default: `firefox`)
 
-        the browser to use. Possible values are: `chromium`, `firefox`.
+    the browser to use. Possible values are: `chromium`, `firefox`.
 
+  - `headless` (optional, default: `true`)
 
-    - `headless` (optional, default: `true`)
-
-        if set to `true`, the browser will run in headless mode.
+    if set to `true`, the browser will run in headless mode.
 
 > [!NOTE]
 >
@@ -162,15 +158,15 @@ Configurations are passed via two `json` files:
 
 - `session` (optional)
 
-    additional configurations for the session manager, works for both `requests` and `playwright` session types.
+  additional configurations for the session manager, works for both `requests` and `playwright` session types.
 
-    - `save` (optional, default: `false`)
+  - `save` (optional, default: `false`)
 
-        if set to `true`, the session cookies will be saved to a file.
+    if set to `true`, the session cookies will be saved to a file.
 
-    - `save_path` (optional, default: `${cache_dir}/session.dat`)
+  - `save_path` (optional, default: `${cache_dir}/session.dat`)
 
-        the path to the file where the session cookies will be saved to.
+    the path to the file where the session cookies will be saved to.
 
 ### credentials.json
 
@@ -180,28 +176,24 @@ Configurations are passed via two `json` files:
 
 - `username` (essential)
 
-    your TUM username, e.g. ab12cde.
+  your TUM username, e.g. ab12cde.
 
 - `password` (essential)
 
-    your TUM password, e.g. 12345678.
-
-
-
+  your TUM password, e.g. 12345678.
 
 ## Pattern Matching
 
 - `match_type` can be one of the following:
 
-    - `literal`: exact string match
-    - `regex`: regular expression match
+  - `literal`: exact string match
+  - `regex`: regular expression match
 
 - `pattern` is the string or regular expression to match against.
 
 > [!NOTE]
 >
-> For `contains` mode, please use the `regex` mode with `pattern` set to `.*<your_substring>.*` or `<your_substring>` to achieve the same effect.
-
+> For `contains` mode, please use the `regex` mode with `pattern` set to `.*<your_substring>.*` or `<your_substring>` to achieve the same effect. Be aware of special characters in regex patterns.
 
 ## Updating Methods
 

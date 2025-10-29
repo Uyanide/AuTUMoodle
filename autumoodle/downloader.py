@@ -202,7 +202,8 @@ class _CourseProcess():
             raise ValueError(f"Unsupported course config type: {self._course_config.config_type}")
 
         filter_func = get_filter_func_func(self._course_config)
-        with create_temp_file(".zip") as temp_zip_path:
+        temp_zip_path = create_temp_file(".zip")
+        try:
             Logger.d("Downloader", f"Downloading course '{self._course.title}' to temporary file '{temp_zip_path}'...")
             await self._session.download_archive(
                 self._course.id,
@@ -217,6 +218,9 @@ class _CourseProcess():
             Logger.d("Downloader", f"Extracting course '{self._course.title}' from '{temp_zip_path}'...")
             ZipExtractor(temp_zip_path).extract_files(self._file_download_configs)
             Logger.i("Downloader", f"Finished processing course '{self._course.title}'")
+        finally:
+            if temp_zip_path.exists():
+                temp_zip_path.unlink()
 
 
 class TUMMoodleDownloader():

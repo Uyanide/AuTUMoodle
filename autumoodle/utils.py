@@ -54,16 +54,23 @@ def parse_semester(semester: str) -> tuple[bool, int]:
     return is_ws, start_year
 
 
-@contextmanager
-def create_temp_dir(prefix: str = "autumoodle_"):
-    with tempfile.TemporaryDirectory(prefix=prefix) as d:
-        yield Path(d)
+# @contextmanager
+# def create_temp_dir(prefix: str = "autumoodle_"):
+#     with tempfile.TemporaryDirectory(prefix=prefix) as d:
+#         yield Path(d)
+def create_temp_dir(prefix: str = "autumoodle_") -> Path:
+    d = tempfile.mkdtemp(prefix=prefix)
+    return Path(d)
 
 
-@contextmanager
-def create_temp_file(suffix: str = "", prefix: str = "autumoodle_"):
-    with tempfile.NamedTemporaryFile(suffix=suffix, prefix=prefix) as f:
-        yield Path(f.name)
+# @contextmanager
+# def create_temp_file(suffix: str = "", prefix: str = "autumoodle_"):
+#     with tempfile.NamedTemporaryFile(suffix=suffix, prefix=prefix) as f:
+#         yield Path(f.name)
+def create_temp_file(suffix: str = "", prefix: str = "autumoodle_") -> Path:
+    f = tempfile.NamedTemporaryFile(suffix=suffix, prefix=prefix, delete=False)
+    f.close()
+    return Path(f.name)
 
 
 class PatternMatcher:

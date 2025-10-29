@@ -41,7 +41,8 @@ class ZipExtractor:
             os.utime(dest, (timestamp, timestamp))
 
     def extract_files(self, file_download_configs: list[FileDownloadConfig]):
-        with create_temp_dir(prefix="autumoodle_zip_extract_") as temp_dir:
+        temp_dir = create_temp_dir(prefix="autumoodle_zip_extract_")
+        try:
             with ZipFile(self._file_path, 'r') as zip_ref:
                 for zip_info in zip_ref.infolist():
                     normalized_name = zip_info.filename.replace("\\", "/").lstrip("/")
@@ -96,3 +97,5 @@ class ZipExtractor:
                         self._copy_with_timestamp(temp_path, destination_path, zip_mtime)
                     else:
                         raise ValueError(f"Unknown update type: {update_type}")
+        finally:
+            shutil.rmtree(temp_dir)
