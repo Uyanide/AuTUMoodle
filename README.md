@@ -6,7 +6,7 @@
 
 Configurations are passed via two `json` files:
 
-- `config.json`: contains general configurations such as from what to download, where to save, etc.
+- `config.json`: contains general configurations such as what to download, where to save, etc.
 - `credentials.json`: contains login credentials, i.e. username and password.
 
 > [!IMPORTANT]
@@ -22,13 +22,11 @@ Configurations are passed via two `json` files:
 >
 > or be entered interactively when running the CLI tool in a interactive terminal. However, a `credentials.json` file is generally recommended for ease of use.
 
----
-
 ### config.json
 
 > [!NOTE]
 >
-> an example can be found in the root directory of this repository.
+> An example can be found [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config.json).
 
 - `destination_base`
 
@@ -174,17 +172,19 @@ Configurations are passed via two `json` files:
 
         the path to the file where the session cookies will be saved to.
 
----
-
 ### credentials.json
+
+> [!NOTE]
+>
+> My example can be found [here](https://www.youtube.com/watch?v=dQw4w9WgXcQ) :)
 
 - `username` (essential)
 
-    your TUM username.
+    your TUM username, e.g. ab12cde.
 
 - `password` (essential)
 
-    your TUM password.
+    your TUM password, e.g. 12345678.
 
 
 
