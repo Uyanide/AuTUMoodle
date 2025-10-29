@@ -254,5 +254,4 @@ class TUMMoodleDownloader():
     async def do_magic(self):
         async with TUMMoodleSessionBuilder(self._config) as self._session:  # type: ignore
             courses = await self._session.get_courses(False)
-            return
             await asyncio.gather(*[self._proc_course(course) for course in courses])
