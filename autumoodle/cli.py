@@ -12,7 +12,7 @@ from . import credential
 def get_argparser():
     parser = ArgumentParser()
     parser.add_argument("-c", "--config", dest="config_path", default="config.json",  help="Path to configuration file (json)")
-    parser.add_argument("-s", "--secret", dest="secret_path",  help="Path to secret file (json)")
+    parser.add_argument("-s", "--secret", dest="secret_path", help="Path to secret file (json)")
     return parser
 
 

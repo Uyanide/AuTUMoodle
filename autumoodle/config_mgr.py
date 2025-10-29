@@ -25,8 +25,9 @@ def get_default_config():
     return {
         "show_hidden_courses": False,
         "cache_dir": Path.home() / ".cache" / "autumoodle",
-        "session_save": True,
-        "session_save_path": Path.home() / ".cache" / "autumoodle" / "session.json",
+        "session_type": "requests",
+        "session_save": False,
+        "session_save_path": Path.home() / ".cache" / "autumoodle" / "session.dat",
         "destination_base": Path.home() / "Documents" / "AuTUMoodle",
         "log_level": "INFO",
         "update_type": UpdateType.RENAME,
@@ -166,6 +167,7 @@ class Config:
     password: str = field(default="")
     show_hidden_courses: bool = field(default_factory=lambda: get_default_config()["show_hidden_courses"])
     cache_dir: Path = field(default_factory=lambda: get_default_config()["cache_dir"])
+    session_type: str = field(default_factory=lambda: get_default_config()["session_type"])
     session_save: bool = field(default_factory=lambda: get_default_config()["session_save"])
     session_save_path: Path = field(default_factory=lambda: get_default_config()["session_save_path"])
     destination_base: Path = field(default_factory=lambda: get_default_config()["destination_base"])
@@ -187,7 +189,7 @@ class Config:
                 session_cfg = config_data["session"]
                 cm.session_save = session_cfg.get("save", cm.session_save)
                 cm.session_save_path = Path(session_cfg.get(
-                    "save_path", str(cm.session_save_path))).expanduser()
+                    "save_path", str(cm.cache_dir / "session.dat"))).expanduser()
 
             if "log_level" in config_data:
                 cm.log_level = config_data["log_level"]
@@ -204,6 +206,8 @@ class Config:
                 cm.summary_enabled = summary_cfg.get("enabled", cm.summary_enabled)
                 cm.summary_dir = Path(summary_cfg.get("path", str(cm.summary_dir))).expanduser()
                 cm.summary_expire_days = summary_cfg.get("expire_days", cm.summary_expire_days)
+
+            cm.session_type = config_data.get("session_type", cm.session_type).lower()
 
             if "playwright" in config_data:
                 pw_cfg = config_data["playwright"]

@@ -4,6 +4,7 @@ from pathlib import Path
 
 from .log import Logger
 from . import utils
+from . import session_intf as smgr
 
 # autopep8: off
 # There are 3 kinds of login pages:
@@ -28,40 +29,31 @@ def COURSES_PAGE_URL(show_hidden): return f"{MOODLE_URL()}/my/?coc-manage={'1' i
 TIMEOUT = 30  # in seconds
 
 
-# describes a downloadable resource in the download center
 @dataclass(frozen=True, slots=True)
-class ResourceInfo:
-    id: str  # numeric
-    filename: str  # filename without "Dateien mit ursprünglichem Dateinamen herunterladen"
-
+class ResourceInfo(smgr.ResourceInfo):
+    id: str
+    filename: str
     # for internal use
     _input: Locator  # checkbox
     _div: Locator  # the "form-check" div
 
 
-# describes a category of downloadable resources
-# can be edited by filter functions, so not frozen
 @dataclass(slots=True)
-class ResourceCategory:
-    title: str  # e.g. "Übungen"
-    resources: list[ResourceInfo]
+class ResourceCategory(smgr.ResourceCategory):
+    title: str
+    resources: list[smgr.ResourceInfo]
 
 
-# describes a class/course in Moodle
 @dataclass(frozen=True, slots=True)
-class CourseInfo:
-    id: str  # numeric
-    # One entry on www.moodle.tum.de/my should be like:
-    #   $title
-    #   ($semester | $school)
-    title: str  # e.g. Analysis für Informatik [MA0902]
-    # school: str  # e.g. Computation, Information and Technology
-    metainfo: str  # Containing semester and school info
-    is_ws: bool = False  # is winter semester
-    start_year: int = 0  # start year of the semester
+class CourseInfo(smgr.CourseInfo):
+    id: str
+    title: str
+    metainfo: str
+    is_ws: bool = False
+    start_year: int = 0
 
 
-class TUMMoodleSession:
+class TUMMoodleSession(smgr.TUMMoodleSession):
     _username: str
     _password: str
     _headless: bool
@@ -90,7 +82,11 @@ class TUMMoodleSession:
 
         if self._storage_state_path and self._storage_state_path.exists():
             Logger.d("TUMMoodleSession", f"Using saved session from {self._storage_state_path}")
-            self._context = await self._browser.new_context(storage_state=str(self._storage_state_path))
+            try:
+                self._context = await self._browser.new_context(storage_state=str(self._storage_state_path))
+            except Exception as e:
+                Logger.w("TUMMoodleSession", f"Failed to load storage state: {e}, starting with a fresh context.")
+                self._context = await self._browser.new_context()
         else:
             self._context = await self._browser.new_context()
 
@@ -187,7 +183,7 @@ class TUMMoodleSession:
             Logger.e("TUMMoodleSession", f"Login failed: {e}")
             return False
 
-    async def get_courses(self, show_hidden: bool) -> list[CourseInfo]:
+    async def get_courses(self, show_hidden: bool) -> list[smgr.CourseInfo]:
         '''Retrieve the list of courses from the Moodle "Meine Startseite" page.'''
         home_page = None
         try:
@@ -268,7 +264,7 @@ class TUMMoodleSession:
             item_idx = j
             parsed_item = await self._parse_download_form_entry(item)
             if parsed_item:
-                Logger.i("TUMMoodleSession", f"Found resource: {parsed_item.filename} (ID: {parsed_item.id})")
+                Logger.d("TUMMoodleSession", f"Found resource: {parsed_item.filename} (ID: {parsed_item.id})")
                 resource_items.append(parsed_item)
             else:
                 Logger.d("TUMMoodleSession", f"Failed to parse resource item at index {item_idx} in card '{title}'.")
@@ -276,7 +272,7 @@ class TUMMoodleSession:
 
     async def _perform_download(self, categories: list[ResourceCategory], page: Page) -> Download | None:
         '''Perform the download of selected resources and save to the specified path.'''
-        to_check = [item._input for category in categories for item in category.resources]
+        to_check = [item._input for category in categories for item in category.resources]  # pyright: ignore[reportAttributeAccessIssue]
         if len(to_check) == 0:
             Logger.w("TUMMoodleSession", f"No resources selected for download after filtering.")
             return None
@@ -314,7 +310,7 @@ class TUMMoodleSession:
                     Logger.d("TUMMoodleSession", f"Adding {len(resource_items)} resources under '{card_title}'.")
                     categories.append(ResourceCategory(
                         title=card_title,
-                        resources=resource_items
+                        resources=resource_items  # pyright: ignore[reportArgumentType]
                     ))
                 else:
                     Logger.d("TUMMoodleSession", f"Failed to parse resources in card '{card_title}'.")

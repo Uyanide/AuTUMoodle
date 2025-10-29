@@ -1,5 +1,5 @@
 {
-    "destination_base": "~/Documents/UniAlt",
+    "destination_base": "~/Documents/Uni",
     "courses": [
         {
             "pattern": "Analysis für Informatik [MA0902]",
@@ -153,8 +153,8 @@
             }
         }
     ],
-    "show_hidden_courses": false,
     "cache_dir": "~/.cache/autumoodle",
+    "session_type": "requests",
     "playwright": {
         "browser": "firefox",
         "headless": true
@@ -166,7 +166,7 @@
     },
     "session": {
         "save": true,
-        "save_path": "~/.cache/autumoodle/session.json"
+        "save_path": "~/.cache/autumoodle/session.dat"
     },
     "log_level": "DEBUG"
 }
