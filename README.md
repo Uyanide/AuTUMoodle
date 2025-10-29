@@ -9,7 +9,7 @@ Configurations are passed via two `json` files:
 - `config.json`: contains general configurations such as what to download, where to save, etc.
 - `credentials.json`: contains login credentials, i.e. username and password.
 
-These two files can have whatever name you like and be placed wherever you want, as long as the correct paths are provided via the `-c/--config` and `-s/--secret` arguments respectively when running the CLI tool
+These two files can have whatever name you like and be placed wherever you want, as long as the correct paths are provided via the `-c/--config` and `-s/--secret` arguments respectively when running the CLI tool.
 
 > [!IMPORTANT]
 >
@@ -19,8 +19,8 @@ These two files can have whatever name you like and be placed wherever you want,
 >
 > Instead of using a separate `credentials.json` file, the credentials can also be passed via environment variables:
 >
-> - `TUM_USERNAME`: your TUM username
-> - `TUM_PASSWORD`: your TUM password
+> - `TUM_USERNAME`: your TUM username, e.g. ab12cde
+> - `TUM_PASSWORD`: your TUM password, e.g. nevergonnagiveyouup123
 >
 > or be entered interactively when running the CLI tool in a interactive terminal. However, a `credentials.json` file is generally recommended for ease of use.
 
@@ -76,7 +76,7 @@ These two files can have whatever name you like and be placed wherever you want,
 
       only the files that matches one of the rules in `config.rules.files` will be processed.
 
-  - `config` (optional based on `config_type`)
+  - `config` (optional)
 
     additional configuration based on the selected `config_type`.
 
@@ -130,7 +130,7 @@ These two files can have whatever name you like and be placed wherever you want,
 
 - `cache_dir` (optional, default: `~/.cache/autumoodle`)
 
-  the directory where cached files will be stored.
+  the directory where cached and temporary files will be stored.
 
 - `session_type` (optional, default: `requests`)
 
@@ -141,6 +141,10 @@ These two files can have whatever name you like and be placed wherever you want,
   - `playwright`: uses the [Playwright](https://playwright.dev/) library to automate browser interactions. Although it can be used to bypass the complicated (manual) Shibboleth SSO logins, it remains to be a rather "heavy" solution since this literally runs a browser (firefox by default) in the background.
 
   Both implementations are using asynchronous APIs under the hood, so the performance difference in practice may not be that significant.
+
+> [!NOTE]
+>
+> Please make sure to download the corresponding browser binaries by running `playwright install` in your terminal after installing the `playwright` package if you are planning to use the `playwright` session implementation.
 
 - `playwright` (optional, only used when `session_type` is `playwright`)
 
@@ -153,10 +157,6 @@ These two files can have whatever name you like and be placed wherever you want,
   - `headless` (optional, default: `true`)
 
     if set to `true`, the browser will run in headless mode.
-
-> [!NOTE]
->
-> Please make sure to download the corresponding browser binaries by running `playwright install` in your terminal after installing the `playwright` package.
 
 - `session` (optional)
 
@@ -182,7 +182,7 @@ These two files can have whatever name you like and be placed wherever you want,
 
 - `password` (essential)
 
-  your TUM password, e.g. 12345678.
+  your TUM password, e.g. nevergonnagiveyouup123.
 
 ## Pattern Matching
 
