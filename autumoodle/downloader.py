@@ -7,7 +7,7 @@ from .session_intf import TUMMoodleSession, CourseInfo, CategoryInfo
 from .config_mgr import Config, CourseConfig, CourseConfigType
 from .utils import create_temp_file, PatternMatcher, sanitize_filename
 from .log import Logger
-from .zip_extract import FileDownloadConfig, ZipExtractor
+from .zip_extract import FileDownloadConfig, extract_files
 
 
 class _CourseProcess():
@@ -218,7 +218,7 @@ class _CourseProcess():
                 raise RuntimeError("Downloaded archive is empty")
 
             Logger.d("Downloader", f"Extracting course '{self._course.title}' from '{temp_zip_path}'...")
-            ZipExtractor(temp_zip_path).extract_files(self._file_download_configs)
+            extract_files(temp_zip_path, self._file_download_configs)
             Logger.i("Downloader", f"Finished processing course '{self._course.title}'")
         finally:
             if temp_zip_path.exists():
