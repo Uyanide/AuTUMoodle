@@ -3,7 +3,7 @@ import asyncio
 
 
 from .session_mgr import TUMMoodleSessionBuilder
-from .session_intf import TUMMoodleSession, CourseInfo, ResourceCategory
+from .session_intf import TUMMoodleSession, CourseInfo, CategoryInfo
 from .config_mgr import Config, CourseConfig, CourseConfigType
 from .utils import create_temp_file, PatternMatcher, sanitize_filename
 from .log import Logger
@@ -36,7 +36,7 @@ class _CourseProcess():
 
     def _get_filter_func_auto(self, course_config: CourseConfig, respect_categories: bool = True):
 
-        def filter_func(resource: list[ResourceCategory]) -> list[ResourceCategory]:
+        def filter_func(resource: list[CategoryInfo]) -> list[CategoryInfo]:
             for category in resource:
                 if respect_categories:
                     directory = self._destination_base / sanitize_filename(category.title)
@@ -66,7 +66,7 @@ class _CourseProcess():
         cat_configs = course_config.categories
         file_configs = course_config.files
 
-        def filter_func(resource: list[ResourceCategory]) -> list[ResourceCategory]:
+        def filter_func(resource: list[CategoryInfo]) -> list[CategoryInfo]:
             new_cats = []
             for cat in resource:
                 # Check if any category config matches
@@ -84,8 +84,8 @@ class _CourseProcess():
                 if not cat_dest.is_absolute():
                     cat_dest = self._destination_base / cat_dest
                 cat_update_type = matched_cat_config.update_type if matched_cat_config.update_type else course_config.update_type
-                new_resources = []
-                for file in cat.resources:
+                new_entries = []
+                for file in cat.entries:
                     # Check if any file config matches
                     matched_file_config = None
                     for file_config in file_configs:
@@ -94,7 +94,7 @@ class _CourseProcess():
                             break
                     # Use fallback config if no match
                     if not matched_file_config:
-                        new_resources.append(file)
+                        new_entries.append(file)
                         continue
                     # Check if to ignore
                     if matched_file_config.ignore:
@@ -106,7 +106,7 @@ class _CourseProcess():
                             update_type=course_config.update_type
                         ))
                         continue
-                    new_resources.append(file)
+                    new_entries.append(file)
                     # Determine destination
                     file_dest = matched_file_config.directory if matched_file_config.directory else cat_dest
                     if not file_dest.is_absolute():
@@ -129,21 +129,19 @@ class _CourseProcess():
                     directory=self._destination_base / cat_dest,
                     update_type=course_config.update_type
                 ))
-                new_cats.append(ResourceCategory(
-                    title=cat.title,
-                    resources=new_resources
-                ))
+                cat.entries = new_entries
+                new_cats.append(cat)
             return new_cats
         return filter_func
 
     def _get_filter_func_file_manual(self, course_config: CourseConfig):
         file_configs = course_config.files
 
-        def filter_func(resource: list[ResourceCategory]) -> list[ResourceCategory]:
+        def filter_func(resource: list[CategoryInfo]) -> list[CategoryInfo]:
             new_cats = []
             for category in resource:
-                new_resources = []
-                for file in category.resources:
+                new_entries = []
+                for file in category.entries:
                     # Check if any file config matches
                     matched_file_config = None
                     for file_config in file_configs:
@@ -156,12 +154,10 @@ class _CourseProcess():
                     # Check if to ignore
                     if matched_file_config.ignore:
                         continue
-                    new_resources.append(file)
-                if new_resources:
-                    new_cats.append(ResourceCategory(
-                        title=category.title,
-                        resources=new_resources
-                    ))
+                    new_entries.append(file)
+                if new_entries:
+                    category.entries = new_entries
+                    new_cats.append(category)
             return new_cats
 
         for file_config in file_configs:

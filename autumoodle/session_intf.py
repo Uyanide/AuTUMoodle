@@ -7,18 +7,19 @@ from .utils import passthrough
 
 # describes a downloadable resource in the download center
 @dataclass(frozen=True)
-class ResourceInfo(ABC):
+class EntryInfo(ABC):
     """Interface for a downloadable resource in the download center"""
     id: str
     filename: str
 
 
 # describes a category of downloadable resources
-@dataclass(frozen=True)
-class ResourceCategory(ABC):
+# can be edited by filter functions, so not frozen
+@dataclass
+class CategoryInfo(ABC):
     """Interface for a category of downloadable resources"""
     title: str
-    resources: list[ResourceInfo]
+    entries: list[EntryInfo]
 
 
 # describes a class/course in Moodle

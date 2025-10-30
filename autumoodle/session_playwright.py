@@ -30,7 +30,7 @@ TIMEOUT = 30  # in seconds
 
 
 @dataclass(frozen=True, slots=True)
-class ResourceInfo(smgr.ResourceInfo):
+class EntryInfo(smgr.EntryInfo):
     id: str
     filename: str
     # for internal use
@@ -38,10 +38,10 @@ class ResourceInfo(smgr.ResourceInfo):
     _div: Locator  # the "form-check" div
 
 
-@dataclass(slots=True, frozen=True)
-class ResourceCategory(smgr.ResourceCategory):
+@dataclass(slots=True)
+class CategoryInfo(smgr.CategoryInfo):
     title: str
-    resources: list[smgr.ResourceInfo]
+    entries: list[smgr.EntryInfo]
 
 
 @dataclass(frozen=True, slots=True)
@@ -165,7 +165,7 @@ class TUMMoodleSession(smgr.TUMMoodleSession):
         '''Perform login on the TUM login page and wait until redirected back to Moodle.'''
         Logger.d("TUMMoodleSession", f"Attempting login on page: {page.url}")
         if not page.url.startswith(TUM_LOGIN_URL()):
-            Logger.w("TUMMoodleSession", "Not on TUM login page, login aborted.")
+            Logger.d("TUMMoodleSession", "Not on TUM login page, login aborted.")
             return False
         try:
             Logger.d("TUMMoodleSession", "Filling in login credentials...")
@@ -225,7 +225,7 @@ class TUMMoodleSession(smgr.TUMMoodleSession):
             if home_page:
                 await home_page.close()
 
-    async def _parse_download_form_entry(self, entry) -> ResourceInfo | None:
+    async def _parse_download_form_entry(self, entry) -> EntryInfo | None:
         '''Parse a single download form entry (div.form-check) and return ResourceInfo.'''
         entry_input = entry.locator('input')
         if not entry_input:
@@ -239,14 +239,14 @@ class TUMMoodleSession(smgr.TUMMoodleSession):
             return None
         if await entry_input.is_checked():
             await entry_input.uncheck()
-        return ResourceInfo(
+        return EntryInfo(
             id=entry_id,
             filename=entry_filename,
             _input=entry_input,
             _div=entry
         )
 
-    async def _parse_categorie(self, card) -> list[ResourceInfo]:
+    async def _parse_categorie(self, card) -> list[EntryInfo]:
         '''Parse a download category card and return list of ResourceInfo.'''
         # Get the section title
         title = (await card.locator('span.sectiontitle').inner_text()).strip()
@@ -270,11 +270,11 @@ class TUMMoodleSession(smgr.TUMMoodleSession):
                 Logger.d("TUMMoodleSession", f"Failed to parse resource item at index {item_idx} in card '{title}'.")
         return resource_items
 
-    async def _perform_download(self, categories: list[ResourceCategory], page: Page) -> Download | None:
+    async def _perform_download(self, categories: list[CategoryInfo], page: Page) -> Download | None:
         '''Perform the download of selected resources and save to the specified path.'''
-        to_check = [item._input for category in categories for item in category.resources]  # pyright: ignore[reportAttributeAccessIssue]
+        to_check = [item._input for category in categories for item in category.entries]  # pyright: ignore[reportAttributeAccessIssue]
         if len(to_check) == 0:
-            Logger.w("TUMMoodleSession", f"No resources selected for download after filtering.")
+            Logger.d("TUMMoodleSession", f"No resources selected for download after filtering.")
             return None
         Logger.d("TUMMoodleSession", f"Selecting {len(to_check)} resources for download...")
         for input_elem in to_check:
@@ -301,25 +301,25 @@ class TUMMoodleSession(smgr.TUMMoodleSession):
             download_cards = page.locator('div.card', has=page.locator('span.sectiontitle'))
             count = await download_cards.count()
             Logger.d("TUMMoodleSession", f"Found {count} cards.")
-            categories: list[ResourceCategory] = []
+            categories: list[CategoryInfo] = []
             for i in range(count):
                 card = download_cards.nth(i)
                 card_title = (await (card.locator('span.sectiontitle').inner_text())).strip()
-                resource_items = await self._parse_categorie(card)
-                if resource_items:
-                    Logger.d("TUMMoodleSession", f"Adding {len(resource_items)} resources under '{card_title}'.")
-                    categories.append(ResourceCategory(
+                entries = await self._parse_categorie(card)
+                if entries:
+                    Logger.d("TUMMoodleSession", f"Adding {len(entries)} resources under '{card_title}'.")
+                    categories.append(CategoryInfo(
                         title=card_title,
-                        resources=resource_items  # pyright: ignore[reportArgumentType]
+                        entries=entries  # pyright: ignore[reportArgumentType]
                     ))
                 else:
                     Logger.d("TUMMoodleSession", f"Failed to parse resources in card '{card_title}'.")
 
             Logger.d("TUMMoodleSession", f"Total categories parsed: {len(categories)}.")
-            filtered_resources = filter(categories)
+            filtered_categories = filter(categories)
             Logger.d("TUMMoodleSession",
-                     f"Total resources after filtering: {sum(len(cat.resources) for cat in filtered_resources)}.")
-            download = await self._perform_download(filtered_resources, page)
+                     f"Total entries after filtering: {sum(len(cat.entries) for cat in filtered_categories)}.")
+            download = await self._perform_download(filtered_categories, page)
             if download:
                 Logger.d("TUMMoodleSession", f"Downloaded archive will be saved to: {save_path}")
                 return await download.save_as(str(save_path))

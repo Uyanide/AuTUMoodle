@@ -20,16 +20,16 @@ def COURSES_PAGE_URL(show_hidden): return f"{MOODLE_URL()}/my/{'?coc-manage=1' i
 
 
 @dataclass(frozen=True, slots=True)
-class ResourceInfo(smgr.ResourceInfo):
+class EntryInfo(smgr.EntryInfo):
     id: str
     filename: str
     _input_name: str
 
 
-@dataclass(slots=True, frozen=True)
-class ResourceCategory(smgr.ResourceCategory):
+@dataclass(slots=True)
+class CategoryInfo(smgr.CategoryInfo):
     title: str
-    resources: list[smgr.ResourceInfo]
+    entries: list[smgr.EntryInfo]
     _input_name: str
 
 
@@ -160,7 +160,7 @@ class TUMMoodleSession(smgr.TUMMoodleSession):
             Logger.e("TUMMoodleSession", f"Failed to retrieve courses: {e}")
             return []
 
-    def _parse_entry(self, entry: Tag) -> ResourceInfo | None:
+    def _parse_entry(self, entry: Tag) -> EntryInfo | None:
         entry_input = entry.select_one('input')
         if not entry_input:
             return None
@@ -177,16 +177,16 @@ class TUMMoodleSession(smgr.TUMMoodleSession):
         entry_name = entry_label_span.get_text(strip=True)
         if not entry_name:
             return None
-        return ResourceInfo(
+        return EntryInfo(
             id=entry_id,
             filename=entry_name,
             _input_name=entry_input_name
         )
 
-    def _parse_category(self, card: Tag) -> ResourceCategory | None:
+    def _parse_category(self, card: Tag) -> CategoryInfo | None:
         title_tags = card.select('span.sectiontitle')
         if not title_tags:
-            Logger.w("TUMMoodleSession", "No title tag found in resource card.")
+            Logger.d("TUMMoodleSession", "No title tag found in resource card.")
             return None
         title = title_tags[0].get_text(strip=True)
         Logger.d("TUMMoodleSession", f"Processing card '{title}'...")
@@ -194,15 +194,15 @@ class TUMMoodleSession(smgr.TUMMoodleSession):
         entries = []
         items = card.select('div.form-check')
         if len(items) <= 1:
-            Logger.w("TUMMoodleSession", f"No resources found in card '{title}'.")
+            Logger.d("TUMMoodleSession", f"No resources found in card '{title}'.")
             return None
         category_input = items[0].select_one('input')
         if not category_input:
-            Logger.w("TUMMoodleSession", f"No category input found in card '{title}'.")
+            Logger.d("TUMMoodleSession", f"No category input found in card '{title}'.")
             return None
         category_input_name = category_input.get('name')
         if not isinstance(category_input_name, str):
-            Logger.w("TUMMoodleSession", f"Invalid category input name in card '{title}'.")
+            Logger.d("TUMMoodleSession", f"Invalid category input name in card '{title}'.")
             return None
         for item in items[1:]:  # skip the first one (select all)
             entry = self._parse_entry(item)
@@ -211,16 +211,16 @@ class TUMMoodleSession(smgr.TUMMoodleSession):
                 entries.append(entry)
 
         if not entries:
-            Logger.w("TUMMoodleSession", f"No valid resources parsed in card '{title}'.")
+            Logger.d("TUMMoodleSession", f"No valid resources parsed in card '{title}'.")
             return None
 
-        return ResourceCategory(
+        return CategoryInfo(
             title=title,
-            resources=entries,
+            entries=entries,
             _input_name=category_input_name
         )
 
-    async def _perform_download(self, categories: list[ResourceCategory], page: BeautifulSoup, save_path: Path) -> Path | None:
+    async def _perform_download(self, categories: list[CategoryInfo], page: BeautifulSoup, save_path: Path) -> Path | None:
         form = page.find('form')
         if not form:  # should not happen
             raise RuntimeError("No form found on download center page")
@@ -252,17 +252,17 @@ class TUMMoodleSession(smgr.TUMMoodleSession):
 
         have_entries = False
         for category in categories:
-            if not category.resources:
+            if not category.entries:
                 continue
             have_entries = True
             # select the category
             payload[category._input_name] = '1'
-            for entry in category.resources:
+            for entry in category.entries:
                 # select the entry
                 payload[entry._input_name] = '1'  # type: ignore
 
         if not have_entries:
-            Logger.w("TUMMoodleSession", "No entries selected for download.")
+            Logger.d("TUMMoodleSession", "No entries selected for download.")
             return None
 
         response = self._client.stream('POST', action, data=payload, headers={
@@ -291,19 +291,18 @@ class TUMMoodleSession(smgr.TUMMoodleSession):
 
             download_cards = soup.select('div.card:has(span.sectiontitle)')
             Logger.d("TUMMoodleSession", f"Found {len(download_cards)} cards.")
-            categories: list[ResourceCategory] = []
+            categories: list[CategoryInfo] = []
             for card in download_cards:
                 category = self._parse_category(card)
                 if category:
                     categories.append(category)
             Logger.d("TUMMoodleSession", f"Total categories parsed: {len(categories)}.")
-            filtered_resources = filter(categories)
+            filtered_categories = filter(categories)
             Logger.d("TUMMoodleSession",
-                     f"Total resources after filtering: {sum(len(cat.resources) for cat in filtered_resources)}.")
-            downloaded_path = await self._perform_download(filtered_resources, soup, save_path)
+                     f"Total entries after filtering: {sum(len(cat.entries) for cat in filtered_categories)}.")
+            downloaded_path = await self._perform_download(filtered_categories, soup, save_path)
             if downloaded_path:
                 Logger.d("TUMMoodleSession", f"Downloaded archive will be saved to: {downloaded_path}")
-                return
             else:
                 Logger.w("TUMMoodleSession", f"No archive was downloaded for course {course_id}.")
         except Exception as e:
