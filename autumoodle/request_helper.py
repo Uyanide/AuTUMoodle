@@ -39,12 +39,14 @@ class FormParser:
             self.inputs.append((str(name), str(value)))
 
     def update_inputs(self, updates: dict[str, str]):
+        # Create a copy to avoid modifying while iterating
+        remaining_updates = dict(updates)
         for i, (name, value) in enumerate(self.inputs):
-            if name in updates:
-                self.inputs[i] = (name, updates[name])
+            if name in remaining_updates:
+                self.inputs[i] = (name, remaining_updates[name])
                 # Only update the first occurrence
-                updates.pop(name)
-        for name, value in updates.items():
+                del remaining_updates[name]
+        for name, value in remaining_updates.items():
             self.inputs.append((name, value))
 
     def remove_inputs(self, keys: set[str]):

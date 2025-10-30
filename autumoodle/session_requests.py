@@ -143,8 +143,14 @@ class TUMMoodleSession(smgr.TUMMoodleSession):
                 id = href.split("id=")[-1].split("&")[0]  # get the numeric id
                 metainfo_tag = link.find('span', class_='coc-metainfo')
                 metainfo_text = metainfo_tag.get_text(strip=True) if metainfo_tag else ""
-                is_ws, start_year = utils.parse_semester(metainfo_text.split(
-                    " | ")[0].removeprefix("(")) if metainfo_text else (False, 0)
+                # Parse semester info more efficiently by avoiding redundant string operations
+                if metainfo_text:
+                    semester_part = metainfo_text.split(" | ", 1)[0]
+                    if semester_part.startswith("("):
+                        semester_part = semester_part[1:]
+                    is_ws, start_year = utils.parse_semester(semester_part)
+                else:
+                    is_ws, start_year = False, 0
                 course = CourseInfo(
                     id=id,
                     title=title.strip(),

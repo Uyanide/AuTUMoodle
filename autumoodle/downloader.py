@@ -67,6 +67,7 @@ class _CourseProcess():
         file_configs = course_config.files
 
         def filter_func(resource: list[ResourceCategory]) -> list[ResourceCategory]:
+            filtered_resource = []
             for cat in resource:
                 # Check if any category config matches
                 matched_cat_config = None
@@ -76,7 +77,6 @@ class _CourseProcess():
                         break
                 # Ignore entire category if no match
                 if not matched_cat_config:
-                    resource.remove(cat)
                     continue
                 # Default to category title if no destination is sepecified
                 cat_dest = matched_cat_config.destination if matched_cat_config.destination else Path(
@@ -130,7 +130,8 @@ class _CourseProcess():
                     directory=self._destination_base / cat_dest,
                     update_type=course_config.update_type
                 ))
-            return resource
+                filtered_resource.append(cat)
+            return filtered_resource
         return filter_func
 
     def _get_filter_func_file_manual(self, course_config: CourseConfig):

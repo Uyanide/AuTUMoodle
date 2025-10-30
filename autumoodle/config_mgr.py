@@ -3,7 +3,7 @@ from pathlib import Path
 from enum import Enum
 import re
 
-from .utils import PatternMatcher
+from .utils import PatternMatcher, parse_semester
 
 
 # Action to take when file exists & needs to be updated
@@ -118,15 +118,7 @@ class CourseConfig:
         # semester
         if "semester" not in config_data:
             raise ValueError("CourseConfig requires 'semester' field")
-        semester = config_data["semester"].lower()
-        cm.is_ws = "ws" in semester or "winter" in semester or "wis" in semester
-        number_groups = [int(s) for s in re.findall(r'\d{2,4}', semester)]
-        if not number_groups:
-            raise ValueError("CourseConfig 'semester' field must contain a year")
-        if number_groups[0] >= 2000:
-            cm.start_year = number_groups[0]
-        else:
-            cm.start_year = 2000 + number_groups[0]
+        cm.is_ws, cm.start_year = parse_semester(config_data["semester"])
 
         # destination base
         if "destination_base" in config_data:
