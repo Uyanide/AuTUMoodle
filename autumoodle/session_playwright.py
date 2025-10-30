@@ -38,7 +38,7 @@ class ResourceInfo(smgr.ResourceInfo):
     _div: Locator  # the "form-check" div
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, frozen=True)
 class ResourceCategory(smgr.ResourceCategory):
     title: str
     resources: list[smgr.ResourceInfo]

@@ -121,7 +121,6 @@ class _CourseProcess():
                         directory=directory,
                         update_type=matched_file_config.update_type if matched_file_config.update_type else cat_update_type
                     ))
-                cat.resources = new_resources
                 # Append fallback config for the entire category
                 self._file_download_configs.append(FileDownloadConfig(
                     category_matcher=matched_cat_config.title_matcher,
@@ -130,7 +129,10 @@ class _CourseProcess():
                     directory=self._destination_base / cat_dest,
                     update_type=course_config.update_type
                 ))
-                new_cats.append(cat)
+                new_cats.append(ResourceCategory(
+                    title=cat.title,
+                    resources=new_resources
+                ))
             return new_cats
         return filter_func
 
@@ -138,6 +140,7 @@ class _CourseProcess():
         file_configs = course_config.files
 
         def filter_func(resource: list[ResourceCategory]) -> list[ResourceCategory]:
+            new_cats = []
             for category in resource:
                 new_resources = []
                 for file in category.resources:
@@ -154,8 +157,12 @@ class _CourseProcess():
                     if matched_file_config.ignore:
                         continue
                     new_resources.append(file)
-                category.resources = new_resources
-            return resource
+                if new_resources:
+                    new_cats.append(ResourceCategory(
+                        title=category.title,
+                        resources=new_resources
+                    ))
+            return new_cats
 
         for file_config in file_configs:
             if file_config.ignore:

@@ -26,7 +26,7 @@ class ResourceInfo(smgr.ResourceInfo):
     _input_name: str
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, frozen=True)
 class ResourceCategory(smgr.ResourceCategory):
     title: str
     resources: list[smgr.ResourceInfo]

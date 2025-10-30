@@ -14,8 +14,7 @@ class ResourceInfo(ABC):
 
 
 # describes a category of downloadable resources
-# can be edited by filter functions, so not frozen
-@dataclass
+@dataclass(frozen=True)
 class ResourceCategory(ABC):
     """Interface for a category of downloadable resources"""
     title: str
