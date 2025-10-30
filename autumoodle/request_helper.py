@@ -42,8 +42,6 @@ class FormParser:
         for i, (name, value) in enumerate(self.inputs):
             if name in updates:
                 self.inputs[i] = (name, updates[name])
-                # Only update the first occurrence
-                updates.pop(name)
         for name, value in updates.items():
             self.inputs.append((name, value))
 
