@@ -1,3 +1,10 @@
+'''
+Author: Uyanide pywang0608@foxmail.com
+Date: 2025-10-26 21:59:22
+LastEditTime: 2025-10-31 13:53:16
+Description: A simple logger
+'''
+
 import sys
 from loguru import logger as _logger
 

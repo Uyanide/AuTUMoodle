@@ -55,15 +55,15 @@
       pip install loguru
       ```
 
-      and depending on the session manager implementation you want to use:
+      and depending on the session implementation you want to use:
 
-      - for `requests` session manager (better performance, but may break in the future):
+      - for `requests` (better performance, but may break in the future):
 
       ```sh
       pip install httpx beautifulsoup4
       ```
 
-      - for `playwright` session manager (more robust, but much heavier):
+      - for `playwright` (more robust, but much heavier):
 
       ```sh
       pip install playwright
@@ -277,7 +277,7 @@ These two files can have whatever name you like and be placed wherever you want,
 
 - `session_type` (optional, default: `requests`)
 
-  implementation of the session manager to use when logging and retrieving files from Moodle. Possible values are:
+  implementation of the session to use when logging and retrieving files from Moodle. Possible values are:
 
   - `requests`: uses the [httpx](https://www.python-httpx.org/) library to make HTTP requests. Lightweight, fast, but may soon break if the procedure of Shibboleth SSO login used by TUM Moodle changes some day (like many other similar tools out there).
 
@@ -291,7 +291,7 @@ These two files can have whatever name you like and be placed wherever you want,
 
 - `playwright` (optional, only used when `session_type` is `playwright`)
 
-  additional configurations for the Playwright session manager.
+  additional configurations for the Playwright session.
 
   - `browser` (optional, default: `firefox`)
 

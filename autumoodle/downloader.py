@@ -1,3 +1,10 @@
+'''
+Author: Uyanide pywang0608@foxmail.com
+Date: 2025-10-29 22:08:19
+LastEditTime: 2025-10-31 13:52:33
+Description: Main logic for downloading courses based on configuration
+'''
+
 from pathlib import Path
 import asyncio
 

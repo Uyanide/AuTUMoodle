@@ -1,7 +1,13 @@
+'''
+Author: Uyanide pywang0608@foxmail.com
+Date: 2025-10-29 22:08:19
+LastEditTime: 2025-10-31 13:56:34
+Description: Utility functions and classes for autumoodle
+'''
+
 import re
 import tempfile
 from pathlib import Path
-from contextlib import contextmanager
 from enum import Enum
 from functools import partial
 from typing import Callable

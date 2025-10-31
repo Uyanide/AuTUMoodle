@@ -1,10 +1,17 @@
+'''
+Author: Uyanide pywang0608@foxmail.com
+Date: 2025-10-26 21:59:22
+LastEditTime: 2025-10-31 13:59:44
+Description: Playwright-based Moodle session implementation
+'''
+
 from playwright.async_api import async_playwright, Playwright, Browser, Page, BrowserContext, Locator, Download
 from dataclasses import dataclass
 from pathlib import Path
 
 from .log import Logger
 from . import utils
-from . import session_intf as smgr
+from . import session_intf as intf
 
 # autopep8: off
 # There are 3 kinds of login pages:
@@ -30,7 +37,7 @@ TIMEOUT = 30  # in seconds
 
 
 @dataclass(frozen=True, slots=True)
-class EntryInfo(smgr.EntryInfo):
+class EntryInfo(intf.EntryInfo):
     id: str
     title: str
     # for internal use
@@ -39,13 +46,13 @@ class EntryInfo(smgr.EntryInfo):
 
 
 @dataclass(slots=True)
-class CategoryInfo(smgr.CategoryInfo):
+class CategoryInfo(intf.CategoryInfo):
     title: str
-    entries: list[smgr.EntryInfo]
+    entries: list[intf.EntryInfo]
 
 
 @dataclass(frozen=True, slots=True)
-class CourseInfo(smgr.CourseInfo):
+class CourseInfo(intf.CourseInfo):
     id: str
     title: str
     metainfo: str
@@ -53,7 +60,7 @@ class CourseInfo(smgr.CourseInfo):
     start_year: int = 0
 
 
-class TUMMoodleSession(smgr.TUMMoodleSession):
+class TUMMoodleSession(intf.TUMMoodleSession):
     _username: str
     _password: str
     _headless: bool
@@ -183,7 +190,7 @@ class TUMMoodleSession(smgr.TUMMoodleSession):
             Logger.e("TUMMoodleSession", f"Login failed: {e}")
             return False
 
-    async def get_courses(self, show_hidden: bool) -> list[smgr.CourseInfo]:
+    async def get_courses(self, show_hidden: bool) -> list[intf.CourseInfo]:
         '''Retrieve the list of courses from the Moodle "Meine Startseite" page.'''
         home_page = None
         try:

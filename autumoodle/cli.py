@@ -1,3 +1,10 @@
+'''
+Author: Uyanide pywang0608@foxmail.com
+Date: 2025-10-29 22:08:19
+LastEditTime: 2025-10-31 13:32:03
+Description: CLI entry point for autumoodle
+'''
+
 from argparse import ArgumentParser
 from pathlib import Path
 import json

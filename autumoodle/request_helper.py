@@ -1,3 +1,10 @@
+'''
+Author: Uyanide pywang0608@foxmail.com
+Date: 2025-10-29 09:57:27
+LastEditTime: 2025-10-31 13:53:35
+Description: Helpers for "requests" session implementation
+'''
+
 from bs4 import BeautifulSoup
 from urllib.parse import urlencode
 

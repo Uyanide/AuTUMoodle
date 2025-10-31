@@ -1,3 +1,10 @@
+'''
+Author: Uyanide pywang0608@foxmail.com
+Date: 2025-10-29 21:13:55
+LastEditTime: 2025-10-31 13:56:08
+Description: httpx(requests)-based Moodle session implementation
+'''
+
 from dataclasses import dataclass
 from pathlib import Path
 import httpx
@@ -8,7 +15,7 @@ from .log import Logger
 from . import utils
 from . import request_helper
 from .auth import auth
-from . import session_intf as smgr
+from . import session_intf as intf
 
 # autopep8: off
 def MOODLE_URL(): return "https://www.moodle.tum.de"
@@ -20,21 +27,21 @@ def COURSES_PAGE_URL(show_hidden): return f"{MOODLE_URL()}/my/{'?coc-manage=1' i
 
 
 @dataclass(frozen=True, slots=True)
-class EntryInfo(smgr.EntryInfo):
+class EntryInfo(intf.EntryInfo):
     id: str
     title: str
     _input_name: str
 
 
 @dataclass(slots=True)
-class CategoryInfo(smgr.CategoryInfo):
+class CategoryInfo(intf.CategoryInfo):
     title: str
-    entries: list[smgr.EntryInfo]
+    entries: list[intf.EntryInfo]
     _input_name: str
 
 
 @dataclass(frozen=True, slots=True)
-class CourseInfo(smgr.CourseInfo):
+class CourseInfo(intf.CourseInfo):
     id: str
     title: str
     metainfo: str
@@ -42,7 +49,7 @@ class CourseInfo(smgr.CourseInfo):
     start_year: int
 
 
-class TUMMoodleSession(smgr.TUMMoodleSession):
+class TUMMoodleSession(intf.TUMMoodleSession):
     _username: str
     _password: str
     _storage_state_path: Path | None
@@ -122,7 +129,7 @@ class TUMMoodleSession(smgr.TUMMoodleSession):
         except Exception as e:
             Logger.e("TUMMoodleSession", f"Failed to save session after login: {e}")
 
-    async def get_courses(self, show_hidden: bool) -> list[smgr.CourseInfo]:
+    async def get_courses(self, show_hidden: bool) -> list[intf.CourseInfo]:
         try:
             Logger.d("TUMMoodleSession", "Retrieving courses from Mein Startseite...")
             response = await self._client.get(COURSES_PAGE_URL(show_hidden))

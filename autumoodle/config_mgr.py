@@ -1,7 +1,13 @@
+'''
+Author: Uyanide pywang0608@foxmail.com
+Date: 2025-10-26 21:59:22
+LastEditTime: 2025-10-31 13:34:33
+Description: Data classes representing configurations from json config files
+'''
+
 from dataclasses import dataclass, field
 from pathlib import Path
 from enum import Enum
-import re
 
 from .utils import PatternMatcher, parse_semester
 

@@ -1,3 +1,10 @@
+'''
+Author: Uyanide pywang0608@foxmail.com
+Date: 2025-10-29 22:08:19
+LastEditTime: 2025-10-31 13:56:48
+Description: Functions to extract files from zip archives based on configuration
+'''
+
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path

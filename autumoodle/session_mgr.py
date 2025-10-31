@@ -1,3 +1,10 @@
+'''
+Author: Uyanide pywang0608@foxmail.com
+Date: 2025-10-30 12:40:53
+LastEditTime: 2025-10-31 13:55:41
+Description: Factory for Moodle session implementations
+'''
+
 from contextlib import asynccontextmanager
 
 from .config_mgr import Config

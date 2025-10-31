@@ -1,3 +1,10 @@
+'''
+Author: Uyanide pywang0608@foxmail.com
+Date: 2025-10-29 10:07:02
+LastEditTime: 2025-10-31 13:54:07
+Description: Authentication helper for "requests" session implementation
+'''
+
 import httpx
 
 from .log import Logger

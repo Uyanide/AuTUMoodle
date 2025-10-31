@@ -1,3 +1,10 @@
+'''
+Author: Uyanide pywang0608@foxmail.com
+Date: 2025-10-29 17:26:36
+LastEditTime: 2025-10-31 13:55:35
+Description: Interfaces for Moodle session implementations and data classes
+'''
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
