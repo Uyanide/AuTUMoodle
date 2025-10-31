@@ -70,6 +70,35 @@ class EntryConfig:
 
 
 @dataclass(slots=True)
+class FileConfig:
+    name_matcher: PatternMatcher = field(init=False)
+    directory: Path | None = field(default=None)
+    update_type: UpdateType | None = field(default=None)
+    ignore: bool = field(default=False)
+
+    @classmethod
+    def from_dict(cls, config_data: dict):
+        cm = cls()
+
+        if "pattern" not in config_data or "match_type" not in config_data:
+            raise ValueError("file config requires 'pattern' and 'match_type' fields")
+        cm.name_matcher = PatternMatcher(
+            config_data["pattern"], config_data["match_type"]
+        )
+
+        if "directory" in config_data:
+            cm.directory = Path(config_data["directory"]).expanduser()
+
+        if "ignore" in config_data:
+            cm.ignore = config_data["ignore"]
+
+        if "update" in config_data:
+            cm.update_type = UpdateType(config_data["update"].lower())
+
+        return cm
+
+
+@dataclass(slots=True)
 class CategoryConfig:
     title_matcher: PatternMatcher = field(init=False)
     destination: Path | None = field(default=None)
@@ -102,6 +131,7 @@ class CourseConfig:
     destination_base: Path | None = field(default=None)
     categories: list[CategoryConfig] = field(default_factory=list)
     entries: list[EntryConfig] = field(default_factory=list)
+    files: list[FileConfig] = field(default_factory=list)
     config_type: CourseConfigType = field(default_factory=lambda: get_default_config()["course_config_type"])
     update_type: UpdateType = field(default_factory=lambda: get_default_config()["update_type"])
 
@@ -149,6 +179,9 @@ class CourseConfig:
 
         for entry_cfg in rules.get("entries", []):
             cm.entries.append(EntryConfig.from_dict(entry_cfg))
+
+        for file_cfg in rules.get("files", []):
+            cm.files.append(FileConfig.from_dict(file_cfg))
 
         return cm
 

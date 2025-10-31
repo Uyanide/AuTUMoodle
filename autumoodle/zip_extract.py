@@ -5,7 +5,7 @@ import shutil
 import os
 from zipfile import ZipFile
 
-from .config_mgr import UpdateType
+from .config_mgr import UpdateType, FileConfig
 from .utils import create_temp_dir, PatternMatcher
 
 
@@ -28,6 +28,13 @@ def _find_matching_config(category: str, entry: str, _file_download_configs: lis
     return None
 
 
+def _find_matching_file_config(file_path: Path, file_configs: list[FileConfig]) -> FileConfig | None:
+    for config in file_configs:
+        if config.name_matcher and config.name_matcher.match(file_path.name):
+            return config
+    return None
+
+
 def _check_ignored(fullpath: Path, ignored_files: list[PatternMatcher]) -> bool:
     name = fullpath.name
     for matcher in ignored_files:
@@ -42,7 +49,7 @@ def _copy_with_timestamp(src: Path, dest: Path, timestamp: float | None = None):
         os.utime(dest, (timestamp, timestamp))
 
 
-def _find_newest_modification_time(target: Path):
+def _find_latest_modification_time(target: Path):
     newest_time = 0
     if target.exists():
         newest_time = target.stat().st_mtime
@@ -54,42 +61,66 @@ def _find_newest_modification_time(target: Path):
     return newest_time
 
 
-def extract_files(zip_path: Path, file_download_configs: list[EntryDownloadConfig], ignored_files: list[PatternMatcher] | None = None):
+def extract_files(zip_path: Path,
+                  destination_base: Path,
+                  file_download_configs: list[EntryDownloadConfig],
+                  ignored_files: list[PatternMatcher],
+                  file_configs: list[FileConfig]):
     temp_dir = create_temp_dir(prefix="autumoodle_zip_extract_")
     try:
         with ZipFile(zip_path, 'r') as zip_ref:
             for zip_info in zip_ref.infolist():
                 normalized_name = zip_info.filename.replace("\\", "/").lstrip("/")
+                # Get category and entry names
                 splitted = normalized_name.split("/")
                 if len(splitted) < 2:
                     continue
                 category_name = splitted[0]
                 entry_name = splitted[1]
-                file_config = _find_matching_config(category_name, entry_name, file_download_configs)
-                if file_config is None:
+                # Find matching config
+                entry_config = _find_matching_config(category_name, entry_name, file_download_configs)
+                if entry_config is None:
                     # Try without extension name
                     # But directories should not have extensions
                     if len(splitted) > 2:
                         continue
                     entry_name = Path(entry_name).stem
-                    file_config = _find_matching_config(category_name, entry_name, file_download_configs)
+                    entry_config = _find_matching_config(category_name, entry_name, file_download_configs)
 
-                if file_config is None:
+                if entry_config is None:
                     continue
 
-                temp_path = Path(zip_ref.extract(zip_info, temp_dir))
-
-                destination_path = file_config.directory / normalized_name.split("/", 1)[1]
+                # Get configuration values
+                destination_path = entry_config.directory / normalized_name.split("/", 1)[1]
+                update_type = entry_config.update_type
 
                 # Check the file is to be ignored
                 if ignored_files and _check_ignored(destination_path, ignored_files):
                     continue
 
+                # Check if any FileConfig matches
+                file_config = _find_matching_file_config(destination_path, file_configs)
+                if file_config:
+                    if file_config.ignore:
+                        continue
+                    # Override destination path if specified
+                    if file_config.directory is not None:
+                        if file_config.directory.is_absolute():
+                            destination_path = file_config.directory / destination_path.name
+                        else:
+                            destination_path = destination_base / file_config.directory / destination_path.name
+                    # Override update type if specified
+                    if file_config.update_type is not None:
+                        update_type = file_config.update_type
+
                 destination_path.parent.mkdir(parents=True, exist_ok=True)
 
-                update_type = file_config.update_type
+                # Extract to temp location
+                temp_path = Path(zip_ref.extract(zip_info, temp_dir))
+
+                # Check modification time
                 if destination_path.exists():
-                    local_date = _find_newest_modification_time(destination_path)
+                    local_date = _find_latest_modification_time(destination_path)
                 else:
                     local_date = 0
                 zip_mtime = datetime(*zip_info.date_time).timestamp()

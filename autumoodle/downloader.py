@@ -220,7 +220,13 @@ class _CourseProcess():
                 raise RuntimeError("Downloaded archive is empty")
 
             Logger.d("Downloader", f"Extracting course '{self._course.title}' from '{temp_zip_path}'...")
-            extract_files(temp_zip_path, self._entry_download_configs, self._ignored_files_list)
+            extract_files(
+                temp_zip_path,
+                self._destination_base,
+                self._entry_download_configs,
+                self._ignored_files_list,
+                self._course_config.files
+            )
             Logger.i("Downloader", f"Finished processing course '{self._course.title}'")
         finally:
             if temp_zip_path.exists():
