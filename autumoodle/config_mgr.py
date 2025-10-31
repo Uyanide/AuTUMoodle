@@ -15,9 +15,9 @@ class UpdateType(Enum):
 
 class CourseConfigType(Enum):
     CATEGORY_AUTO = "category_auto"      # automatically create subdirs according to category titles
-    CATEGORY_MANUAL = "category_manual"  # use manually defined category & file configs, only the included categories will be considered
-    FILE_AUTO = "file_auto"              # put all files in the course base dir
-    FILE_MANUAL = "file_manual"          # use manually defined file configs, only the included files will be considered
+    CATEGORY_MANUAL = "category_manual"  # use manually defined category & entry configs, only the included categories will be considered
+    ENTRY_AUTO = "entry_auto"            # put all entries in the course base dir
+    ENTRY_MANUAL = "entry_manual"        # use manually defined entry configs, only the included entries will be considered
 
 
 # Using a function to return defaults for clarity and consistency
@@ -41,8 +41,8 @@ def get_default_config():
 
 
 @dataclass(slots=True)
-class FileConfig:
-    name_matcher: PatternMatcher = field(init=False)
+class EntryConfig:
+    title_matcher: PatternMatcher = field(init=False)
     directory: Path | None = field(default=None)
     update_type: UpdateType | None = field(default=None)
     ignore: bool = field(default=False)
@@ -52,8 +52,8 @@ class FileConfig:
         cm = cls()
 
         if "pattern" not in config_data or "match_type" not in config_data:
-            raise ValueError("file config requires 'pattern' and 'match_type' fields")
-        cm.name_matcher = PatternMatcher(
+            raise ValueError("entry config requires 'pattern' and 'match_type' fields")
+        cm.title_matcher = PatternMatcher(
             config_data["pattern"], config_data["match_type"]
         )
 
@@ -101,7 +101,7 @@ class CourseConfig:
     start_year: int = field(init=False)
     destination_base: Path | None = field(default=None)
     categories: list[CategoryConfig] = field(default_factory=list)
-    files: list[FileConfig] = field(default_factory=list)
+    entries: list[EntryConfig] = field(default_factory=list)
     config_type: CourseConfigType = field(default_factory=lambda: get_default_config()["course_config_type"])
     update_type: UpdateType = field(default_factory=lambda: get_default_config()["update_type"])
 
@@ -133,22 +133,22 @@ class CourseConfig:
         if "config_type" in config_data:
             cm.config_type = CourseConfigType(config_data["config_type"].lower())
 
-        if cm.config_type == CourseConfigType.CATEGORY_AUTO or cm.config_type == CourseConfigType.FILE_AUTO:
-            if "categories" in config_data or "files" in config_data:
-                raise ValueError(f"Auto config type '{cm.config_type.value}' should not have 'categories' or 'files' defined")
-            # cm.categories and cm.files are already initialized to []
+        if cm.config_type == CourseConfigType.CATEGORY_AUTO or cm.config_type == CourseConfigType.ENTRY_AUTO:
+            if "categories" in config_data or "entries" in config_data:
+                raise ValueError(f"Auto config type '{cm.config_type.value}' should not have 'categories' or 'entries' defined")
+            # cm.categories and cm.entries are already initialized to []
             return cm
-        elif cm.config_type == CourseConfigType.FILE_MANUAL:
+        elif cm.config_type == CourseConfigType.ENTRY_MANUAL:
             if "categories" in config_data:
-                raise ValueError(f"file_manual config type should not have 'categories' defined")
+                raise ValueError(f"entry_manual config type should not have 'categories' defined")
 
         config = config_data.get("config", {})
         rules = config.get("rules", {})
         for cat_cfg in rules.get("categories", []):
             cm.categories.append(CategoryConfig.from_dict(cat_cfg))
 
-        for file_cfg in rules.get("files", []):
-            cm.files.append(FileConfig.from_dict(file_cfg))
+        for entry_cfg in rules.get("entries", []):
+            cm.entries.append(EntryConfig.from_dict(entry_cfg))
 
         return cm
 

@@ -1,12 +1,11 @@
 {
-    "destination_base": "~/Documents/UniAlt",
+    "destination_base": "~/Documents/Uni",
     "courses": [
         {
             "pattern": "Analysis für Informatik [MA0902]",
             "match_type": "literal",
             "semester": "WS25_26",
             "destination_base": "AnaFI",
-            "update": "rename",
             "config_type": "category_manual",
             "config": {
                 "rules": {
@@ -25,7 +24,7 @@
                             "destination": "Sonstiges"
                         }
                     ],
-                    "files": [
+                    "entries": [
                         {
                             "pattern": "Übungsgruppen",
                             "match_type": "regex",
@@ -61,17 +60,17 @@
             "match_type": "literal",
             "semester": "WS25_26",
             "destination_base": "EIDI",
-            "config_type": "file_auto"
+            "config_type": "entry_auto"
         },
         {
             "pattern": "Einführung in die Rechnerarchitektur (IN0004)",
             "match_type": "literal",
             "semester": "WS25_26",
             "destination_base": "ERA",
-            "config_type": "file_manual",
+            "config_type": "entry_manual",
             "config": {
                 "rules": {
-                    "files": [
+                    "entries": [
                         {
                             "pattern": "Tutorienübersicht",
                             "match_type": "literal",
@@ -106,18 +105,17 @@
             "match_type": "literal",
             "semester": "WS25_26",
             "destination_base": "GBS",
-            "config_type": "file_auto"
+            "config_type": "entry_auto"
         },
         {
             "pattern": "Grundlagen: Datenbanken (IN0008)",
             "match_type": "literal",
             "semester": "WS25_26",
             "destination_base": "GDB",
-            "update": "rename",
-            "config_type": "file_manual",
+            "config_type": "entry_manual",
             "config": {
                 "rules": {
-                    "files": [
+                    "entries": [
                         {
                             "pattern": "^Blatt",
                             "match_type": "regex",
@@ -137,11 +135,10 @@
             "match_type": "literal",
             "semester": "WS25_26",
             "destination_base": "ITSec",
-            "update": "rename",
-            "config_type": "file_manual",
+            "config_type": "entry_manual",
             "config": {
                 "rules": {
-                    "files": [
+                    "entries": [
                         {
                             "pattern": "^Kapitel",
                             "match_type": "regex",
@@ -180,7 +177,7 @@
     },
     "summary": {
         "enabled": true,
-        "path": "~/.cache/autumoodle/summaries",
+        "path": "~/Documents/Uni/summaries",
         "expire_days": 7
     },
     "session": {

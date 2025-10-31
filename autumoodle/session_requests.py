@@ -22,7 +22,7 @@ def COURSES_PAGE_URL(show_hidden): return f"{MOODLE_URL()}/my/{'?coc-manage=1' i
 @dataclass(frozen=True, slots=True)
 class EntryInfo(smgr.EntryInfo):
     id: str
-    filename: str
+    title: str
     _input_name: str
 
 
@@ -174,12 +174,12 @@ class TUMMoodleSession(smgr.TUMMoodleSession):
         entry_label_span = entry_label.select_one('span')
         if not entry_label_span:
             return None
-        entry_name = entry_label_span.get_text(strip=True)
-        if not entry_name:
+        entry_title = entry_label_span.get_text(strip=True)
+        if not entry_title:
             return None
         return EntryInfo(
             id=entry_id,
-            filename=entry_name,
+            title=entry_title,
             _input_name=entry_input_name
         )
 
@@ -207,7 +207,7 @@ class TUMMoodleSession(smgr.TUMMoodleSession):
         for item in items[1:]:  # skip the first one (select all)
             entry = self._parse_entry(item)
             if entry:
-                Logger.d("TUMMoodleSession", f"Found resource: {entry.filename} (ID: {entry.id})")
+                Logger.d("TUMMoodleSession", f"Found resource: {entry.title} (ID: {entry.id})")
                 entries.append(entry)
 
         if not entries:

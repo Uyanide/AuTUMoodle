@@ -10,19 +10,19 @@ from .utils import create_temp_dir, PatternMatcher
 
 
 @dataclass(frozen=True, slots=True)
-class FileDownloadConfig:
+class EntryDownloadConfig:
     category_matcher: PatternMatcher | None
-    name_matcher: PatternMatcher | None
+    entry_matcher: PatternMatcher | None
     ignore: bool
     directory: Path
     update_type: UpdateType
 
 
-def _find_matching_config(category: str, name: str, _file_download_configs: list[FileDownloadConfig]) -> FileDownloadConfig | None:
+def _find_matching_config(category: str, entry: str, _file_download_configs: list[EntryDownloadConfig]) -> EntryDownloadConfig | None:
     for config in _file_download_configs:
         if config.category_matcher and not config.category_matcher.match(category):
             continue
-        if config.name_matcher and not config.name_matcher.match(name):
+        if config.entry_matcher and not config.entry_matcher.match(entry):
             continue
         return config
     return None
@@ -54,7 +54,7 @@ def _find_newest_modification_time(target: Path):
     return newest_time
 
 
-def extract_files(zip_path: Path, file_download_configs: list[FileDownloadConfig], ignored_files: list[PatternMatcher] | None = None):
+def extract_files(zip_path: Path, file_download_configs: list[EntryDownloadConfig], ignored_files: list[PatternMatcher] | None = None):
     temp_dir = create_temp_dir(prefix="autumoodle_zip_extract_")
     try:
         with ZipFile(zip_path, 'r') as zip_ref:

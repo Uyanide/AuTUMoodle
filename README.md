@@ -80,6 +80,24 @@
     python -m autumoodle -c path/to/config.json -s path/to/credentials.json
     ```
 
+## How this works
+
+1. Find out which course(s) to download from.
+2. Fetch "Download Center" page of each course.
+3. Parse the page and find all categories and entries.
+4. Download the files as a ZIP archive (using Moodle's built-in ZIP download feature).
+5. Extract files from the ZIP archive to the right place.
+
+Therefore, the rules defined in the configuration primarily target three levels:
+
+- **course**, e.g. Analysis I (WS25_26)
+- **category**, e.g. Vorlesungen, Übungen, etc.
+- **entry**, e.g. Folien 01, Übungsblatt 1, etc.
+
+> [!IMPORTANT]
+>
+> As described here and later in this documentation, an `entry` stands for **a single entry** under a category in the "Download Center" page of a Moodle course. Therefore, an `entry` can be either an actual file (e.g. PDF, ZIP, etc. which is in most cases), or a folder (containing multiple files), or anything else that can be selected and downloaded on this page. So all the rules configured for `entry` will be applied to the matching entries, but not necessarily the actual files behind those entries.
+
 ## Config
 
 Configurations are passed via two `json` files:
@@ -108,11 +126,11 @@ These two files can have whatever name you like and be placed wherever you want,
 >
 > Examples can be found [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config.json)(for Linux) and [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config-win.json)(for Windows).
 
-- `destination_base`
+- `destination_base` (optional, default: `~/Documents/AuTUMoodle`)
 
-  **ESSENTIAL**, the base directory where all downloaded course materials will be saved to. Each course will get its own sub-directory inside this base directory by default.
+  the base directory where all downloaded course materials will be saved to. Each course will get its own sub-directory inside this base directory by default.
 
-- `courses`
+- `courses` (optional, but will download nothing if not provided)
 
   a list of json objects, each representing a course to download from. ONLY the courses configured here will be processed.
 
@@ -140,31 +158,27 @@ These two files can have whatever name you like and be placed wherever you want,
 
     - `category_auto`
 
-      materials are organized into sub-directories based on their categories as defined in Moodle (e.g. Vorlesungen, Übungen, etc.). This is done automatically.
+      entries are organized into sub-directories based on their categories as defined in Moodle (e.g. Vorlesungen, Übungen, etc.). This is done automatically.
 
     - `category_manual`
 
-      only the categories that matches one of the rules in the `config.rules.categories` will be processed, and the materials that matches one of the rules in `config.rules.files` will be specifically processed.
+      only the categories that matches one of the rules in the `config.rules.categories` will be processed, and the entries that matches one of the rules in `config.rules.entries` will be specifically processed.
 
-    - `file_auto`
+    - `entry_auto`
 
-      all materials are placed directly in the `destination_base` directory.
+      all entries are placed directly in the `destination_base` directory.
 
-    - `file_manual`
+    - `entry_manual`
 
-      only the files that matches one of the rules in `config.rules.files` will be processed.
-
-> [!IMPORTANT]
->
-> As described here and later in this section, a `file` actually stands for **a single entry** under a category in the "Download Center" page of a Moodle course. Therefore, a `file` can be either an actual file (e.g. PDF, ZIP, etc. which is in most cases), or a folder (containing multiple files), or anything else that can be selected and downloaded on that page. So all the rules configured for `file` will be applied to the matching **entries**, but not necessarily the actual files inside those entries.
+      only the entries that matches one of the rules in `config.rules.entries` will be processed.
 
   - `config` (optional)
 
     additional configuration based on the selected `config_type`.
 
-    - for `category_auto` and `file_auto`, this field is ignored.
-    - for `files_manual`, only `rules.files` is considered.
-    - for `category_manual`, both `rules.categories` and `rules.files` are considered.
+    - for `category_auto` and `entry_auto`, this field is ignored.
+    - for `entry_manual`, only `rules.entries` is considered.
+    - for `category_manual`, both `rules.categories` and `rules.entries` are considered.
 
   - `config.rules.categories`
 
@@ -184,23 +198,23 @@ These two files can have whatever name you like and be placed wherever you want,
 
       if not provided, the course's `update` method will be used. See [updating methods](#updating-methods) for details.
 
-  - `config.rules.files`
+  - `config.rules.entries`
 
-    a list of json objects, each representing a rule to match files in the course. Each rule has the following fields:
+    a list of json objects, each representing a rule to match entries in the course. Each rule has the following fields:
 
     - `pattern` and `match_type` (essential)
 
-      matches the title of the file. See [pattern matching](#pattern-matching) for how this works.
+      matches the title of the entry. See [pattern matching](#pattern-matching) for how this works.
 
     - `ignore` (optional, default: `false`)
 
-      if set to `true`, files that matches this rule will be ignored.
+      if set to `true`, entries that matches this rule will be ignored.
 
     - `directory` (optional)
 
-      the directory where this file will be saved to. Case a relative path, it is relative to the course's `destination_base`.
+      the directory where this entry will be saved to. Case a relative path, it is relative to the course's `destination_base`.
 
-      If not provided, the file will be saved directly in the course's `destination_base` if in `file_manual` mode, or in the corresponding category directory if in `category_manual` mode.
+      If not provided, the entry will be saved directly in the course's `destination_base` if in `entry_manual` mode, or in the corresponding category directory if in `category_manual` mode.
 
     - `update` (optional)
 
@@ -216,19 +230,31 @@ These two files can have whatever name you like and be placed wherever you want,
 
 > [!TIP]
 >
-> This is useful for ignoring html files that are automatically generated by Moodle for certain types of resources.
+> This is useful for ignoring html files that are automatically generated by Moodle for certain types of entries.
 
 > [!IMPORTANT]
 >
-> Rules in this field have the highest priority, and will be applied to **actual files** rather than entries in the "Download Center" page.
+> Rules in this field have the highest priority, and will be applied to **actual files** rather than entries displayed in the "Download Center" page.
 
 - `log_level` (optional, default: `INFO`)
 
-  the log level of the CLI tool. Possible values are: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`.
+  the log level of the CLI tool. Possible values are: `DEBUG`, `INFO`, `WARNING`, `ERROR`.
 
 - `cache_dir` (optional, default: `~/.cache/autumoodle`)
 
-  the directory where cached and temporary files will be stored.
+  the directory where cached files will be stored.
+
+> [!TIP]
+>
+> Temporary files will be stored in the system's temporary directory such as `/tmp` on Linux systems and `%TEMP%` on Windows systems. To clear the temporary files that have not been deleted properly (such as after ctrl+c), run:
+> ```sh
+> rm -rf /tmp/autumoodle_*
+> ```
+> on Linux systems, or:
+> ```ps1
+> Remove-Item -Recurse -Force $env:TEMP\autumoodle_*
+> ```
+> on Windows systems (in powershell).
 
 - `session_type` (optional, default: `requests`)
 

@@ -32,7 +32,7 @@ TIMEOUT = 30  # in seconds
 @dataclass(frozen=True, slots=True)
 class EntryInfo(smgr.EntryInfo):
     id: str
-    filename: str
+    title: str
     # for internal use
     _input: Locator  # checkbox
     _div: Locator  # the "form-check" div
@@ -234,14 +234,14 @@ class TUMMoodleSession(smgr.TUMMoodleSession):
         if not entry_id:
             return None
         entry_id = entry_id.split("_")[-1]  # only keep the numeric ID part
-        entry_filename = (await entry.locator('span.itemtitle').locator('span').inner_text()).strip()
-        if not entry_filename:
+        entry_title = (await entry.locator('span.itemtitle').locator('span').inner_text()).strip()
+        if not entry_title:
             return None
         if await entry_input.is_checked():
             await entry_input.uncheck()
         return EntryInfo(
             id=entry_id,
-            filename=entry_filename,
+            title=entry_title,
             _input=entry_input,
             _div=entry
         )
@@ -252,23 +252,23 @@ class TUMMoodleSession(smgr.TUMMoodleSession):
         title = (await card.locator('span.sectiontitle').inner_text()).strip()
         Logger.d("TUMMoodleSession", f"Processing card '{title}'...")
 
-        resource_items = []
+        entries = []
         items = card.locator('div.form-check')
         count = await items.count()
         # The first div should be the section title
         if count <= 1:
             Logger.d("TUMMoodleSession", f"No resources found in card '{title}'.")
-            return resource_items
+            return entries
         for j in range(1, count):
             item = items.nth(j)
             item_idx = j
-            parsed_item = await self._parse_download_form_entry(item)
-            if parsed_item:
-                Logger.d("TUMMoodleSession", f"Found resource: {parsed_item.filename} (ID: {parsed_item.id})")
-                resource_items.append(parsed_item)
+            entry = await self._parse_download_form_entry(item)
+            if entry:
+                Logger.d("TUMMoodleSession", f"Found resource: {entry.title} (ID: {entry.id})")
+                entries.append(entry)
             else:
                 Logger.d("TUMMoodleSession", f"Failed to parse resource item at index {item_idx} in card '{title}'.")
-        return resource_items
+        return entries
 
     async def _perform_download(self, categories: list[CategoryInfo], page: Page) -> Download | None:
         '''Perform the download of selected resources and save to the specified path.'''

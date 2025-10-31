@@ -10,7 +10,7 @@ from .utils import passthrough
 class EntryInfo(ABC):
     """Interface for a downloadable resource in the download center"""
     id: str
-    filename: str
+    title: str
 
 
 # describes a category of downloadable resources

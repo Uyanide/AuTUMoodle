@@ -6,7 +6,6 @@
             "match_type": "literal",
             "semester": "WS25_26",
             "destination_base": "AnaFI",
-            "update": "rename",
             "config_type": "category_manual",
             "config": {
                 "rules": {
@@ -25,14 +24,9 @@
                             "destination": "Sonstiges"
                         }
                     ],
-                    "files": [
+                    "entries": [
                         {
                             "pattern": "Übungsgruppen",
-                            "match_type": "regex",
-                            "ignore": true
-                        },
-                        {
-                            "pattern": "Abgabe Blatt",
                             "match_type": "regex",
                             "ignore": true
                         }
@@ -45,24 +39,38 @@
             "match_type": "literal",
             "semester": "WS25_26",
             "destination_base": "DS",
-            "config_type": "category_auto"
+            "config_type": "category_manual",
+            "config": {
+                "rules": {
+                    "categories": [
+                        {
+                            "pattern": "Übungen",
+                            "match_type": "literal"
+                        },
+                        {
+                            "pattern": "Vorlesung",
+                            "match_type": "literal"
+                        }
+                    ]
+                }
+            }
         },
         {
             "pattern": "Einführung in die Informatik (IN0001)",
             "match_type": "literal",
             "semester": "WS25_26",
             "destination_base": "EIDI",
-            "config_type": "file_auto"
+            "config_type": "entry_auto"
         },
         {
             "pattern": "Einführung in die Rechnerarchitektur (IN0004)",
             "match_type": "literal",
             "semester": "WS25_26",
             "destination_base": "ERA",
-            "config_type": "file_manual",
+            "config_type": "entry_manual",
             "config": {
                 "rules": {
-                    "files": [
+                    "entries": [
                         {
                             "pattern": "Tutorienübersicht",
                             "match_type": "literal",
@@ -97,18 +105,17 @@
             "match_type": "literal",
             "semester": "WS25_26",
             "destination_base": "GBS",
-            "config_type": "file_auto"
+            "config_type": "entry_auto"
         },
         {
             "pattern": "Grundlagen: Datenbanken (IN0008)",
             "match_type": "literal",
             "semester": "WS25_26",
             "destination_base": "GDB",
-            "update": "rename",
-            "config_type": "file_manual",
+            "config_type": "entry_manual",
             "config": {
                 "rules": {
-                    "files": [
+                    "entries": [
                         {
                             "pattern": "^Blatt",
                             "match_type": "regex",
@@ -128,11 +135,10 @@
             "match_type": "literal",
             "semester": "WS25_26",
             "destination_base": "ITSec",
-            "update": "rename",
-            "config_type": "file_manual",
+            "config_type": "entry_manual",
             "config": {
                 "rules": {
-                    "files": [
+                    "entries": [
                         {
                             "pattern": "^Kapitel",
                             "match_type": "regex",
@@ -153,6 +159,16 @@
             }
         }
     ],
+    "ignored_files": [
+        {
+            "pattern": "intro.html",
+            "match_type": "literal"
+        },
+        {
+            "pattern": "Feedback.*\\.html",
+            "match_type": "regex"
+        }
+    ],
     "cache_dir": "D:/1-TUM/Info/.cache",
     "session_type": "requests",
     "playwright": {
@@ -161,7 +177,7 @@
     },
     "summary": {
         "enabled": true,
-        "path": "D:/1-TUM/Info/.cache/summaries",
+        "path": "D:/1-TUM/Info/summaries",
         "expire_days": 7
     },
     "session": {

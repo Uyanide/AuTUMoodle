@@ -7,7 +7,7 @@ from .session_intf import TUMMoodleSession, CourseInfo, CategoryInfo
 from .config_mgr import Config, CourseConfig, CourseConfigType
 from .utils import create_temp_file, PatternMatcher, sanitize_filename
 from .log import Logger
-from .zip_extract import FileDownloadConfig, extract_files
+from .zip_extract import EntryDownloadConfig, extract_files
 
 
 class _CourseProcess():
@@ -15,14 +15,14 @@ class _CourseProcess():
     _session: TUMMoodleSession
     _course_config: CourseConfig
     _course: CourseInfo
-    _file_download_configs: list[FileDownloadConfig]
+    _entry_download_configs: list[EntryDownloadConfig]
     _ignored_files_list: list[PatternMatcher]
 
     def __init__(self, session: TUMMoodleSession, course_config: CourseConfig, course: CourseInfo, global_destination_base: Path, ignored_files_list: list[PatternMatcher]):
         self._session = session
         self._course_config = course_config
         self._course = course
-        self._file_download_configs = []
+        self._entry_download_configs = []
         self._ignored_files_list = ignored_files_list.copy()
 
         if course_config.destination_base:
@@ -44,12 +44,12 @@ class _CourseProcess():
                     directory = self._destination_base / sanitize_filename(category.title)
                 else:
                     directory = self._destination_base
-                self._file_download_configs.append(FileDownloadConfig(
+                self._entry_download_configs.append(EntryDownloadConfig(
                     category_matcher=PatternMatcher(
                         category.title,
                         "literal"
                     ),
-                    name_matcher=None,  # Match whatever file in the category
+                    entry_matcher=None,  # Match whatever file in the category
                     ignore=False,
                     directory=directory,
                     update_type=course_config.update_type
@@ -61,12 +61,12 @@ class _CourseProcess():
     def _get_filter_func_category_auto(self, course_config: CourseConfig):
         return self._get_filter_func_auto(course_config, respect_categories=True)
 
-    def _get_filter_func_file_auto(self, course_config: CourseConfig):
+    def _get_filter_func_entry_auto(self, course_config: CourseConfig):
         return self._get_filter_func_auto(course_config, respect_categories=False)
 
     def _get_filter_func_category_manual(self, course_config: CourseConfig):
         cat_configs = course_config.categories
-        file_configs = course_config.files
+        entry_configs = course_config.entries
 
         def filter_func(resource: list[CategoryInfo]) -> list[CategoryInfo]:
             new_cats = []
@@ -87,46 +87,46 @@ class _CourseProcess():
                     cat_dest = self._destination_base / cat_dest
                 cat_update_type = matched_cat_config.update_type if matched_cat_config.update_type else course_config.update_type
                 new_entries = []
-                for file in cat.entries:
-                    # Check if any file config matches
-                    matched_file_config = None
-                    for file_config in file_configs:
-                        if file_config.name_matcher.match(file.filename):
-                            matched_file_config = file_config
+                for entry in cat.entries:
+                    # Check if any entry config matches
+                    matched_entry_config = None
+                    for entry_config in entry_configs:
+                        if entry_config.title_matcher.match(entry.title):
+                            matched_entry_config = entry_config
                             break
                     # Use fallback config if no match
-                    if not matched_file_config:
-                        new_entries.append(file)
+                    if not matched_entry_config:
+                        new_entries.append(entry)
                         continue
                     # Check if to ignore
-                    if matched_file_config.ignore:
-                        self._file_download_configs.append(FileDownloadConfig(
+                    if matched_entry_config.ignore:
+                        self._entry_download_configs.append(EntryDownloadConfig(
                             category_matcher=matched_cat_config.title_matcher,
-                            name_matcher=matched_file_config.name_matcher,
+                            entry_matcher=matched_entry_config.title_matcher,
                             ignore=True,
                             directory=self._destination_base / cat_dest,
                             update_type=course_config.update_type
                         ))
                         continue
-                    new_entries.append(file)
+                    new_entries.append(entry)
                     # Determine destination
-                    file_dest = matched_file_config.directory if matched_file_config.directory else cat_dest
-                    if not file_dest.is_absolute():
-                        directory = self._destination_base / sanitize_filename(file_dest, allow_separators=True)
+                    entry_dest = matched_entry_config.directory if matched_entry_config.directory else cat_dest
+                    if not entry_dest.is_absolute():
+                        directory = self._destination_base / sanitize_filename(entry_dest, allow_separators=True)
                     else:
-                        directory = file_dest
+                        directory = entry_dest
                     # Add download config
-                    self._file_download_configs.append(FileDownloadConfig(
+                    self._entry_download_configs.append(EntryDownloadConfig(
                         category_matcher=matched_cat_config.title_matcher,
-                        name_matcher=matched_file_config.name_matcher,
+                        entry_matcher=matched_entry_config.title_matcher,
                         ignore=False,
                         directory=directory,
-                        update_type=matched_file_config.update_type if matched_file_config.update_type else cat_update_type
+                        update_type=matched_entry_config.update_type if matched_entry_config.update_type else cat_update_type
                     ))
                 # Append fallback config for the entire category
-                self._file_download_configs.append(FileDownloadConfig(
+                self._entry_download_configs.append(EntryDownloadConfig(
                     category_matcher=matched_cat_config.title_matcher,
-                    name_matcher=None,
+                    entry_matcher=None,
                     ignore=False,
                     directory=self._destination_base / cat_dest,
                     update_type=course_config.update_type
@@ -136,8 +136,8 @@ class _CourseProcess():
             return new_cats
         return filter_func
 
-    def _get_filter_func_file_manual(self, course_config: CourseConfig):
-        file_configs = course_config.files
+    def _get_filter_func_entry_manual(self, course_config: CourseConfig):
+        file_configs = course_config.entries
 
         def filter_func(resource: list[CategoryInfo]) -> list[CategoryInfo]:
             new_cats = []
@@ -147,7 +147,7 @@ class _CourseProcess():
                     # Check if any file config matches
                     matched_file_config = None
                     for file_config in file_configs:
-                        if file_config.name_matcher.match(file.filename):
+                        if file_config.title_matcher.match(file.title):
                             matched_file_config = file_config
                             break
                     # Skip if no match
@@ -164,9 +164,9 @@ class _CourseProcess():
 
         for file_config in file_configs:
             if file_config.ignore:
-                self._file_download_configs.append(FileDownloadConfig(
+                self._entry_download_configs.append(EntryDownloadConfig(
                     category_matcher=None,
-                    name_matcher=file_config.name_matcher,
+                    entry_matcher=file_config.title_matcher,
                     ignore=True,
                     directory=self._destination_base,
                     update_type=course_config.update_type
@@ -178,9 +178,9 @@ class _CourseProcess():
             else:
                 destination = file_dest
             # Add download config
-            self._file_download_configs.append(FileDownloadConfig(
+            self._entry_download_configs.append(EntryDownloadConfig(
                 category_matcher=None,
-                name_matcher=file_config.name_matcher,
+                entry_matcher=file_config.title_matcher,
                 ignore=False,
                 directory=destination,
                 update_type=file_config.update_type if file_config.update_type else course_config.update_type
@@ -195,12 +195,12 @@ class _CourseProcess():
         get_filter_func_func = None
         if self._course_config.config_type == CourseConfigType.CATEGORY_AUTO:
             get_filter_func_func = self._get_filter_func_category_auto
-        elif self._course_config.config_type == CourseConfigType.FILE_AUTO:
-            get_filter_func_func = self._get_filter_func_file_auto
+        elif self._course_config.config_type == CourseConfigType.ENTRY_AUTO:
+            get_filter_func_func = self._get_filter_func_entry_auto
         elif self._course_config.config_type == CourseConfigType.CATEGORY_MANUAL:
             get_filter_func_func = self._get_filter_func_category_manual
-        elif self._course_config.config_type == CourseConfigType.FILE_MANUAL:
-            get_filter_func_func = self._get_filter_func_file_manual
+        elif self._course_config.config_type == CourseConfigType.ENTRY_MANUAL:
+            get_filter_func_func = self._get_filter_func_entry_manual
 
         if not get_filter_func_func:
             raise ValueError(f"Unsupported course config type: {self._course_config.config_type}")
@@ -220,7 +220,7 @@ class _CourseProcess():
                 raise RuntimeError("Downloaded archive is empty")
 
             Logger.d("Downloader", f"Extracting course '{self._course.title}' from '{temp_zip_path}'...")
-            extract_files(temp_zip_path, self._file_download_configs, self._ignored_files_list)
+            extract_files(temp_zip_path, self._entry_download_configs, self._ignored_files_list)
             Logger.i("Downloader", f"Finished processing course '{self._course.title}'")
         finally:
             if temp_zip_path.exists():
