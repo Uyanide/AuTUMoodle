@@ -16,12 +16,14 @@ class _CourseProcess():
     _course_config: CourseConfig
     _course: CourseInfo
     _file_download_configs: list[FileDownloadConfig]
+    _ignored_files_list: list[PatternMatcher]
 
-    def __init__(self, session: TUMMoodleSession, course_config: CourseConfig, course: CourseInfo, global_destination_base: Path):
+    def __init__(self, session: TUMMoodleSession, course_config: CourseConfig, course: CourseInfo, global_destination_base: Path, ignored_files_list: list[PatternMatcher]):
         self._session = session
         self._course_config = course_config
         self._course = course
         self._file_download_configs = []
+        self._ignored_files_list = ignored_files_list.copy()
 
         if course_config.destination_base:
             if course_config.destination_base.is_absolute():
@@ -218,7 +220,7 @@ class _CourseProcess():
                 raise RuntimeError("Downloaded archive is empty")
 
             Logger.d("Downloader", f"Extracting course '{self._course.title}' from '{temp_zip_path}'...")
-            extract_files(temp_zip_path, self._file_download_configs)
+            extract_files(temp_zip_path, self._file_download_configs, self._ignored_files_list)
             Logger.i("Downloader", f"Finished processing course '{self._course.title}'")
         finally:
             if temp_zip_path.exists():
@@ -252,7 +254,13 @@ class TUMMoodleDownloader():
                 Logger.d("Downloader", f"Skipping course '{course.title}': no matching config found")
                 return
 
-            await _CourseProcess(self._session, course_config, course=course, global_destination_base=self._config.destination_base).proc()
+            await _CourseProcess(
+                self._session,
+                course_config,
+                course,
+                self._config.destination_base,
+                self._config.ignored_files
+            ).proc()
         except Exception as e:
             Logger.e("Downloader", f"Error downloading from course '{course.title}': {e}")
 

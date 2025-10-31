@@ -1,5 +1,5 @@
 {
-    "destination_base": "~/Documents/Uni",
+    "destination_base": "~/Documents/UniAlt",
     "courses": [
         {
             "pattern": "Analysis für Informatik [MA0902]",
@@ -30,11 +30,6 @@
                             "pattern": "Übungsgruppen",
                             "match_type": "regex",
                             "ignore": true
-                        },
-                        {
-                            "pattern": "Abgabe Blatt",
-                            "match_type": "regex",
-                            "ignore": true
                         }
                     ]
                 }
@@ -45,7 +40,21 @@
             "match_type": "literal",
             "semester": "WS25_26",
             "destination_base": "DS",
-            "config_type": "category_auto"
+            "config_type": "category_manual",
+            "config": {
+                "rules": {
+                    "categories": [
+                        {
+                            "pattern": "Übungen",
+                            "match_type": "literal"
+                        },
+                        {
+                            "pattern": "Vorlesung",
+                            "match_type": "literal"
+                        }
+                    ]
+                }
+            }
         },
         {
             "pattern": "Einführung in die Informatik (IN0001)",
@@ -151,6 +160,16 @@
                     ]
                 }
             }
+        }
+    ],
+    "ignored_files": [
+        {
+            "pattern": "intro.html",
+            "match_type": "literal"
+        },
+        {
+            "pattern": "Feedback.*\\.html",
+            "match_type": "regex"
         }
     ],
     "cache_dir": "~/.cache/autumoodle",

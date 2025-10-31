@@ -156,6 +156,7 @@ class CourseConfig:
 @dataclass(slots=True)
 class Config:
     courses_config: list[CourseConfig] = field(default_factory=list)
+    ignored_files: list[PatternMatcher] = field(default_factory=list)
     username: str = field(default="")
     password: str = field(default="")
     show_hidden_courses: bool = field(default_factory=lambda: get_default_config()["show_hidden_courses"])
@@ -210,6 +211,15 @@ class Config:
             if "courses" in config_data:
                 for course_cfg in config_data["courses"]:
                     cm.courses_config.append(CourseConfig.from_dict(course_cfg))
+
+            if "ignored_files" in config_data:
+                for pattern_cfg in config_data["ignored_files"]:
+                    if "pattern" not in pattern_cfg or "match_type" not in pattern_cfg:
+                        raise ValueError("ignored_files entry requires 'pattern' and 'match_type' fields")
+                    pm = PatternMatcher(
+                        pattern_cfg["pattern"], pattern_cfg["match_type"]
+                    )
+                    cm.ignored_files.append(pm)
 
             return cm
 

@@ -28,6 +28,14 @@ def _find_matching_config(category: str, name: str, _file_download_configs: list
     return None
 
 
+def _check_ignored(fullpath: Path, ignored_files: list[PatternMatcher]) -> bool:
+    name = fullpath.name
+    for matcher in ignored_files:
+        if matcher.match(name):
+            return True
+    return False
+
+
 def _copy_with_timestamp(src: Path, dest: Path, timestamp: float | None = None):
     shutil.copy2(src, dest)
     if timestamp is not None:
@@ -46,7 +54,7 @@ def _find_newest_modification_time(target: Path):
     return newest_time
 
 
-def extract_files(zip_path: Path, file_download_configs: list[FileDownloadConfig]):
+def extract_files(zip_path: Path, file_download_configs: list[FileDownloadConfig], ignored_files: list[PatternMatcher] | None = None):
     temp_dir = create_temp_dir(prefix="autumoodle_zip_extract_")
     try:
         with ZipFile(zip_path, 'r') as zip_ref:
@@ -71,10 +79,12 @@ def extract_files(zip_path: Path, file_download_configs: list[FileDownloadConfig
 
                 temp_path = Path(zip_ref.extract(zip_info, temp_dir))
 
-                destination_path = file_config.directory / entry_name
-                # Handle subdirectories
-                if len(splitted) > 2:
-                    destination_path = destination_path / "/".join(splitted[2:])
+                destination_path = file_config.directory / normalized_name.split("/", 1)[1]
+
+                # Check the file is to be ignored
+                if ignored_files and _check_ignored(destination_path, ignored_files):
+                    continue
+
                 destination_path.parent.mkdir(parents=True, exist_ok=True)
 
                 update_type = file_config.update_type
