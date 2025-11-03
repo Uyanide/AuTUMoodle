@@ -4,12 +4,12 @@
 
 ## How to Use
 
-0.  Prerequisites:
+1.  Prerequisites:
 
     - [uv](https://docs.astral.sh/uv/) (or Python 3.12+ and pip)
     - git (or manually download the source code as a zip file and extract it)
 
-1.  Clone this repository:
+2.  Clone this repository:
 
     ```sh
     git clone https://github.com/Uyanide/AuTUMoodle.git --depth 1
@@ -17,7 +17,7 @@
 
     or download the source code as a zip file from Github and extract to a local directory.
 
-2.  Prepare virtual environment (optional but recommended):
+3.  Prepare virtual environment (optional but recommended):
 
     - Using `uv` (recommanded):
 
@@ -33,7 +33,7 @@
     source .venv/bin/activate  # Or other commands depending on your OS and shell
     ```
 
-3.  Install dependencies:
+4.  Install dependencies:
 
     - Using `uv` (recommanded):
 
@@ -70,11 +70,11 @@
       playwright install
       ```
 
-4.  Prepare the configuration files:
+5.  Prepare the configuration files:
 
     > see [Config](#config) for details.
 
-5.  Run the CLI tool:
+6.  Run the CLI tool:
 
     ```sh
     python -m autumoodle -c path/to/config.json -s path/to/credentials.json
@@ -82,18 +82,25 @@
 
 ## How this works
 
-1. Find out which course(s) to download from.
-2. Fetch "Download Center" page of each course.
-3. Parse the page and find all categories and entries.
-4. Download as a ZIP archive (using Moodle's built-in ZIP download feature).
-5. Extract files from the ZIP archive to the right place.
+1. Login ~~(which is sofar the most tricky part)~~.
+2. Find out which course(s) to download from.
+3. Fetch "Download Center" page of each course.
+4. Parse the page and find all categories and entries.
+5. Download as a ZIP archive (using Moodle's built-in ZIP download feature).
+6. Extract files from the ZIP archive to the right place.
 
 Based on this procedure, rules defined in the configuration file primarily target four levels:
 
-- **course**, e.g. Analysis I (WS25_26)
-- **category**, e.g. Vorlesungen, Übungen, etc.
-- **entry**, e.g. Folien 01, Hausaufgabe 1, etc.
-- **file**, e.g. Folien 01.pdf, Hausaufgabe 1/some/subdirectories/sheet_1.pdf etc.
+| Level    | Takes effect in steps | Example target                           |
+| -------- | --------------------- | ---------------------------------------- |
+| course   | 2                     | Analysis I (WS25_26)                     |
+| category | 4, 6                  | Vorlesungen, Übungen                     |
+| entry    | 4, 6                  | Folien 01, Hausaufgabe 1                 |
+| file     | 6                     | Folien 01.pdf, Hausaufgabe 1/sheet_1.pdf |
+
+> [!NOTE]
+>
+> `entry` refers to the items displayed under each category, which not necessarily represents an actual file (e.g. it can be a folder containing multiple files, or a link to an external resource, etc.).
 
 ## Config
 
@@ -266,13 +273,17 @@ These two files can have whatever name you like and be placed wherever you want,
 > [!TIP]
 >
 > Temporary files will be stored in the system's temporary directory such as `/tmp` on Linux systems and `%TEMP%` on Windows systems. To clear the temporary files that have not been deleted properly (such as after ctrl+c), run:
+>
 > ```sh
 > rm -rf /tmp/autumoodle_*
 > ```
+>
 > on Linux systems, or:
+>
 > ```ps1
 > Remove-Item -Recurse -Force $env:TEMP\autumoodle_*
 > ```
+>
 > on Windows systems (in powershell).
 
 - `session_type` (optional, default: `requests`)
