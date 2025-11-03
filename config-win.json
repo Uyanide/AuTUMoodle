@@ -46,10 +46,18 @@
                         {
                             "pattern": "Übungen",
                             "match_type": "literal"
+                        }
+                    ],
+                    "files": [
+                        {
+                            "pattern": "Feedback.*\\.html",
+                            "match_type": "regex",
+                            "ignore": true
                         },
                         {
-                            "pattern": "Vorlesung",
-                            "match_type": "literal"
+                            "pattern": "^exercise_sheet_",
+                            "match_type": "regex",
+                            "directory": "Übungen"
                         }
                     ]
                 }
@@ -163,10 +171,6 @@
         {
             "pattern": "intro.html",
             "match_type": "literal"
-        },
-        {
-            "pattern": "Feedback.*\\.html",
-            "match_type": "regex"
         }
     ],
     "cache_dir": "D:/1-TUM/Info/.cache",
