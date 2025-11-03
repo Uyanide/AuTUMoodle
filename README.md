@@ -122,7 +122,7 @@ These two files can have whatever name you like and be placed wherever you want,
 > - `TUM_USERNAME`: your TUM username, e.g. ab12cde
 > - `TUM_PASSWORD`: your TUM password, e.g. nevergonnagiveyouup123
 >
-> or be entered interactively when running the CLI tool in a interactive terminal. However, a `credentials.json` file is generally recommended for ease of use.
+> or be entered interactively when running the CLI tool in an interactive terminal. However, a `credentials.json` file is generally recommended for ease of use.
 
 ### config.json
 

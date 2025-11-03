@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from pathlib import Path
 import time
 from dataclasses import dataclass
@@ -16,30 +17,61 @@ class SummaryEntry:
     detail: str
 
 
-class SummaryWriter:
+class SummaryWriter(ABC):
+    @abstractmethod
+    def __init__(self, dir: Path, prefix: str) -> None:
+        pass
+
+    @abstractmethod
+    def get_extname(self) -> str:
+        pass
+
+    @abstractmethod
+    def get_filepath(self) -> Path:
+        pass
+
+    @abstractmethod
+    def open(self) -> None:
+        pass
+
+    @abstractmethod
+    def close(self) -> None:
+        pass
+
+    @abstractmethod
+    def add_entry(self, entry: SummaryEntry) -> None:
+        pass
+
+    @abstractmethod
+    def format_summary(self) -> str:
+        pass
+
+
+class _SummaryWriterCSV(SummaryWriter):
     _file_path: Path
     _file: object
     _entries: list[SummaryEntry]
 
-    @staticmethod
-    def get_extname() -> str:
-        return ".csv"
+    def _format_filename(self, prefix: str) -> str:
+        return f"{prefix}{time.strftime('%Y%m%d_%H%M%S', time.localtime())}{self.get_extname()}"
 
-    @staticmethod
-    def format_filename(prefix: str) -> str:
-        return f"{prefix}{time.strftime("%Y%m%d_%H%M%S", time.localtime())}{SummaryWriter.get_extname()}"
-
-    def __init__(self, file_path: Path) -> None:
-        self._file_path = file_path
-        self._file_path.parent.mkdir(parents=True, exist_ok=True)
+    def __init__(self, dir: Path, prefix: str) -> None:
+        self._file_path = dir / self._format_filename(prefix)
         self._entries = []
         self._file = None
 
+    def get_extname(self) -> str:
+        return ".csv"
+
+    def get_filepath(self) -> Path:
+        return self._file_path
+
     def open(self) -> None:
+        self._file_path.parent.mkdir(parents=True, exist_ok=True)
         self._file = open(self._file_path, "w", encoding="utf-8")
         self._write_header()
 
-    def write(self, content: str) -> None:
+    def _write(self, content: str) -> None:
         self._file.write(content)  # type: ignore
 
     def close(self) -> None:
@@ -47,19 +79,20 @@ class SummaryWriter:
 
     def _write_header(self) -> None:
         header = '"stored_path","course_name","category_name","entry_name","file_name","status","detail"\n'
-        self.write(header)
+        self._write(header)
 
     def add_entry(self, entry: SummaryEntry) -> None:
         line = f'"{entry.stored_path}","{entry.course_name}","{entry.category_name}","{entry.entry_name}","{entry.file_name}","{entry.status}","{entry.detail}"\n'
-        self.write(line)
+        self._write(line)
         self._entries.append(entry)
 
-    def print_summary(self) -> str:
+    def format_summary(self) -> str:
         total = len(self._entries)
         counts = {}
         for entry in self._entries:
             counts[entry.status] = counts.get(entry.status, 0) + 1
-        return f"Total updated files: {total}. Details: " + ", ".join(f"{status}: {count}" for status, count in counts.items())
+        return f"Total updated files: {total}. Details: " + ", ".join(f"{status}: {count}" for status, count in counts.items()) + \
+            f"\nSummary file saved at: {self._file_path}"
 
 
 class SummaryManager:
@@ -76,7 +109,7 @@ class SummaryManager:
         self.clear_old_summaries()
 
     def clear_old_summaries(self) -> None:
-        for file in self._summary_dir.glob(f"{self._summary_prefix}*{SummaryWriter.get_extname()}"):
+        for file in self._summary_dir.glob(f"{self._summary_prefix}*"):
             try:
                 days_old = (Path.cwd().stat().st_mtime - file.stat().st_mtime) / 86400
                 if days_old > self._expire_days:
@@ -86,18 +119,16 @@ class SummaryManager:
                 Logger.w("SummaryManager", f"Failed to delete old summary file: {file}")
 
     def __enter__(self) -> SummaryWriter:
-        summary_file = self._summary_dir / SummaryWriter.format_filename(self._summary_prefix)
-        Logger.d("SummaryManager", f"Creating summary file: {summary_file}")
         if self._writer:
             raise RuntimeError("SummaryManager is already in use")
-        self._writer = SummaryWriter(summary_file)
+        self._writer = _SummaryWriterCSV(self._summary_dir, self._summary_prefix)
+        Logger.i("SummaryManager", f"Creating new summary file at: {self._writer.get_filepath()}")
         self._writer.open()
         return self._writer
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:
         Logger.d("SummaryManager", "Exiting SummaryManager context")
         if self._writer:
-            Logger.i("SummaryWriter", self._writer.print_summary())
+            print(self._writer.format_summary())
             self._writer.close()
-            Logger.i("SummaryManager", f"Summary file saved: {self._writer._file_path}")
         self._writer = None
