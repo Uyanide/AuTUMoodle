@@ -1,7 +1,7 @@
 '''
 Author: Uyanide pywang0608@foxmail.com
 Date: 2025-10-29 22:08:19
-LastEditTime: 2025-10-31 13:52:33
+LastEditTime: 2025-11-03 13:32:23
 Description: Main logic for downloading courses based on configuration
 '''
 
@@ -15,6 +15,7 @@ from .config_mgr import Config, CourseConfig, CourseConfigType
 from .utils import create_temp_file, PatternMatcher, sanitize_filename
 from .log import Logger
 from .zip_extract import EntryDownloadConfig, extract_files
+from .summary import SummaryManager, SummaryWriter
 
 
 class _CourseProcess():
@@ -24,13 +25,21 @@ class _CourseProcess():
     _course: CourseInfo
     _entry_download_configs: list[EntryDownloadConfig]
     _ignored_files_list: list[PatternMatcher]
+    _summary_writer: SummaryWriter | None
 
-    def __init__(self, session: TUMMoodleSession, course_config: CourseConfig, course: CourseInfo, global_destination_base: Path, ignored_files_list: list[PatternMatcher]):
+    def __init__(self,
+                 session: TUMMoodleSession,
+                 course_config: CourseConfig,
+                 course: CourseInfo,
+                 global_destination_base: Path,
+                 ignored_files_list: list[PatternMatcher],
+                 summary_writer: SummaryWriter | None = None):
         self._session = session
         self._course_config = course_config
         self._course = course
         self._entry_download_configs = []
         self._ignored_files_list = ignored_files_list.copy()
+        self._summary_writer = summary_writer
 
         if course_config.destination_base:
             if course_config.destination_base.is_absolute():
@@ -229,10 +238,12 @@ class _CourseProcess():
             Logger.d("Downloader", f"Extracting course '{self._course.title}' from '{temp_zip_path}'...")
             extract_files(
                 temp_zip_path,
+                self._course.title,
                 self._destination_base,
                 self._entry_download_configs,
                 self._ignored_files_list,
-                self._course_config.files
+                self._course_config.files,
+                self._summary_writer
             )
             Logger.i("Downloader", f"Finished processing course '{self._course.title}'")
         finally:
@@ -243,9 +254,11 @@ class _CourseProcess():
 class TUMMoodleDownloader():
     _session: TUMMoodleSession
     _config: Config
+    _summary_writer: SummaryWriter | None
 
     def __init__(self, config: Config):
         self._config = config
+        self._summary_writer = None
 
     async def _proc_course(self, course: CourseInfo):
         try:
@@ -272,7 +285,8 @@ class TUMMoodleDownloader():
                 course_config,
                 course,
                 self._config.destination_base,
-                self._config.ignored_files
+                self._config.ignored_files,
+                self._summary_writer
             ).proc()
         except Exception as e:
             Logger.e("Downloader", f"Error downloading from course '{course.title}': {e}")
@@ -280,5 +294,14 @@ class TUMMoodleDownloader():
     # Do magic ╰( ͡° ͜ʖ ͡° )つ──☆*:・ﾟ
     async def do_magic(self):
         async with TUMMoodleSessionBuilder(self._config) as self._session:  # type: ignore
-            courses = await self._session.get_courses(False)
-            await asyncio.gather(*[self._proc_course(course) for course in courses])
+            if self._config.summary_enabled:
+                with SummaryManager(
+                    self._config.summary_expire_days,
+                    self._config.summary_dir
+                ) as summary_writer:
+                    self._summary_writer = summary_writer
+                    courses = await self._session.get_courses(False)
+                    await asyncio.gather(*[self._proc_course(course) for course in courses])
+            else:
+                courses = await self._session.get_courses(False)
+                await asyncio.gather(*[self._proc_course(course) for course in courses])

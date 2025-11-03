@@ -324,6 +324,22 @@ These two files can have whatever name you like and be placed wherever you want,
 
     the path to the file where the session cookies will be saved to.
 
+- `summary` (optional)
+
+  configurations for the summary report generation feature.
+
+  - `enabled` (optional, default: `false`)
+
+    if set to `true`, a summary report will be generated after each download session.
+
+  - `path` (optional, default: `${destination_base}/summaries`)
+
+    the directory where the summary reports will be saved to.
+
+  - `expire_days` (optional, default: `7`)
+
+    the number of days after which old summary reports will be deleted.
+
 ### credentials.json
 
 > [!NOTE]

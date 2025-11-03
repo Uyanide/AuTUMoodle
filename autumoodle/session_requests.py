@@ -1,7 +1,7 @@
 '''
 Author: Uyanide pywang0608@foxmail.com
 Date: 2025-10-29 21:13:55
-LastEditTime: 2025-10-31 13:56:08
+LastEditTime: 2025-11-03 13:06:31
 Description: httpx(requests)-based Moodle session implementation
 '''
 
@@ -315,18 +315,3 @@ class TUMMoodleSession(intf.TUMMoodleSession):
         except Exception as e:
             Logger.e("TUMMoodleSession", f"Failed to download archive for course {course_id}: {e}")
             raise
-
-
-if __name__ == "__main__":
-    import asyncio
-
-    async def main():
-        async with TUMMoodleSession("abcdedg", "NeverGonnaGiveYouUp", storage_state_path=Path("session.pkl")) as session:
-            courses = await session.get_courses(show_hidden=True)
-            for course in courses:
-                print(course)
-
-            course_id = "112336"
-            await session.download_archive(course_id, Path(f"temp.zip"))
-
-    asyncio.run(main())

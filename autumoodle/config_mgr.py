@@ -1,7 +1,7 @@
 '''
 Author: Uyanide pywang0608@foxmail.com
 Date: 2025-10-26 21:59:22
-LastEditTime: 2025-10-31 13:34:33
+LastEditTime: 2025-11-03 13:35:25
 Description: Data classes representing configurations from json config files
 '''
 
@@ -41,7 +41,7 @@ def get_default_config():
         "playwright_browser": "firefox",
         "playwright_headless": True,
         "summary_enabled": False,
-        "summary_dir": Path.home() / ".cache" / "autumoodle" / "summaries",
+        "summary_dir": Path.home() / "Documents" / "AuTUMoodle" / "summaries",
         "summary_expire_days": 7,
     }
 
@@ -237,7 +237,7 @@ class Config:
             if "summary" in config_data:
                 summary_cfg = config_data["summary"]
                 cm.summary_enabled = summary_cfg.get("enabled", cm.summary_enabled)
-                cm.summary_dir = Path(summary_cfg.get("path", str(cm.summary_dir))).expanduser()
+                cm.summary_dir = Path(summary_cfg.get("path", str(cm.destination_base / "summaries"))).expanduser()
                 cm.summary_expire_days = summary_cfg.get("expire_days", cm.summary_expire_days)
 
             cm.session_type = config_data.get("session_type", cm.session_type).lower()

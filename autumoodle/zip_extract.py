@@ -1,7 +1,7 @@
 '''
 Author: Uyanide pywang0608@foxmail.com
 Date: 2025-10-29 22:08:19
-LastEditTime: 2025-10-31 13:56:48
+LastEditTime: 2025-11-03 13:26:26
 Description: Functions to extract files from zip archives based on configuration
 '''
 
@@ -14,6 +14,7 @@ from zipfile import ZipFile
 
 from .config_mgr import UpdateType, FileConfig
 from .utils import create_temp_dir, PatternMatcher
+from .summary import SummaryWriter, SummaryEntry
 
 
 @dataclass(frozen=True, slots=True)
@@ -69,10 +70,12 @@ def _find_latest_modification_time(target: Path):
 
 
 def extract_files(zip_path: Path,
+                  course_name: str,
                   destination_base: Path,
                   file_download_configs: list[EntryDownloadConfig],
                   ignored_files: list[PatternMatcher],
-                  file_configs: list[FileConfig]):
+                  file_configs: list[FileConfig],
+                  summary_writer: SummaryWriter | None):
     temp_dir = create_temp_dir(prefix="autumoodle_zip_extract_")
     try:
         with ZipFile(zip_path, 'r') as zip_ref:
@@ -137,6 +140,18 @@ def extract_files(zip_path: Path,
 
                 if update_type == UpdateType.OVERWRITE:
                     _copy_with_timestamp(temp_path, destination_path, zip_mtime)
+                    if summary_writer:
+                        summary_writer.add_entry(
+                            SummaryEntry(
+                                stored_path=str(destination_path),
+                                course_name=course_name,
+                                category_name=category_name,
+                                entry_name=entry_name,
+                                file_name=destination_path.name,
+                                status="overwritten" if local_date > 0 else "added",
+                                detail=""
+                            )
+                        )
                 elif update_type == UpdateType.RENAME:
                     final_path = Path(destination_path)
                     counter = 1
@@ -145,10 +160,34 @@ def extract_files(zip_path: Path,
                             f"{destination_path.stem}_{counter}{destination_path.suffix}")
                         counter += 1
                     _copy_with_timestamp(temp_path, final_path, zip_mtime)
+                    if summary_writer:
+                        summary_writer.add_entry(
+                            SummaryEntry(
+                                stored_path=str(final_path),
+                                course_name=course_name,
+                                category_name=category_name,
+                                entry_name=entry_name,
+                                file_name=final_path.name,
+                                status="renamed" if local_date > 0 else "added",
+                                detail=f"renamed from {destination_path.name}" if local_date > 0 else ""
+                            )
+                        )
                 elif update_type == UpdateType.SKIP:
                     if destination_path.exists():
                         continue
                     _copy_with_timestamp(temp_path, destination_path, zip_mtime)
+                    if summary_writer:
+                        summary_writer.add_entry(
+                            SummaryEntry(
+                                stored_path=str(destination_path),
+                                course_name=course_name,
+                                category_name=category_name,
+                                entry_name=entry_name,
+                                file_name=destination_path.name,
+                                status="added",
+                                detail=""
+                            )
+                        )
                 else:
                     raise ValueError(f"Unknown update type: {update_type}")
     finally:
