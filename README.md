@@ -4,9 +4,146 @@
 
 ## How to Use
 
+<details>
+<summary> Via Docker </summary>
+
+1. Prerequisites:
+
+   - [Docker](https://docs.docker.com/get-docker/)
+   - git (or manually download the source code as a zip file and extract it)
+   - (Optional) [Docker Compose](https://docs.docker.com/compose/install/)
+
+2. Clone this repository:
+
+   ```sh
+   git clone https://github.com/Uyanide/AuTUMoodle.git --depth 1
+   ```
+
+   or download the source code as a zip file from Github and extract to a local directory.
+
+3. Prepare configuration files:
+
+   When using Docker, only `config.json` is required, as credentials can be passed via environment variables. A template config file can be found [here](https://github.com/Uyanide/AuTUMoodle/blob/master/docker/config-template.json). The following entries should **NOT** be changed:
+
+   - `destination_base`: `/data`
+   - `cache_dir`: `/cache`
+   - `session_type`: `requests` (`playwright` is currently not supported)
+
+   Please also keep in mind that all the absolute paths in the config file should refer to paths inside the container (i.e. starting with `/data` or `/cache`), not paths on the host machine (e.g. `/home/ACoolGuy/Documents/Uni`).
+
+> For more information about the configuration file, please refer to the [Config](#config) section.
+
+4.  Run the Docker container:
+
+- Using `docker run`:
+
+  1. Build the Docker image:
+
+  ```sh
+  docker build \
+    --build-arg PUID=$(id -u) \
+    --build-arg PGID=$(id -g) \
+    -t autumoodle:latest \
+    /path/to/AuTUMoodle/repository
+  ```
+
+  2. Run the container, mapping the configuration file and necessary directories:
+
+  ```sh
+  docker run -a \
+    --name autumoodle \
+    -v /path/to/local/config.json:/app/config.json:ro \
+    -v /path/to/local/destination:/data \
+    -v /path/to/local/cache:/cache \
+    -e TUM_USERNAME=your_username \
+    -e TUM_PASSWORD=your_password \
+    autumoodle:latest
+  ```
+
+  3. Then each time you want to run the tool, execute:
+
+  ```sh
+  docker start -a autumoodle
+  ```
+
+> [!NOTE]
+>
+> `-a` flag in step 2 and 3 is used to attach the container's output to your terminal. If you want to run it in the background, you can omit this flag, and check the logs later using:
+>
+> ```sh
+> docker logs autumoodle
+> ```
+
+- Using `docker-compose` (recommended):
+
+  1. Create a `docker-compose.yml` file, for example:
+
+  ```yaml
+  services:
+    autumoodle:
+      build:
+        context: /path/to/AuTUMoodle/repository
+        args:
+          PUID: ${PUID} # or replace with actual numeric value
+          PGID: ${PGID} # or replace with actual numeric value
+      container_name: autumoodle
+      volumes:
+        - /path/to/local/config.json:/app/config.json:ro
+        - /path/to/local/destination:/data
+        - /path/to/local/cache:/cache
+      environment: # or use env_file to load from .env
+        - TUM_USERNAME=your_username
+        - TUM_PASSWORD=your_password
+  ```
+
+  An complete example can be found [here](https://github.com/Uyanide/AuTUMoodle/blob/master/docker/docker-compose.yml).
+
+  2. Set the `PUID` and `PGID` environment variables in your shell:
+
+  ```sh
+  export PUID=$(id -u)
+  export PGID=$(id -g)
+  ```
+
+  Or if you already know your user id and group id, you can directly replace `${PUID}` and `${PGID}` in the `docker-compose.yml` file with the actual numeric values.
+
+  3. Build and run the container:
+
+  ```sh
+  docker compose up autumoodle
+  ```
+
+  or
+
+  ```sh
+  docker-compose up autumoodle
+  ```
+
+  if you are using an older version of Docker.
+
+  4. Then each time you want to run the tool, execute:
+
+  ```sh
+  docker start -a autumoodle
+  ```
+
+> [!NOTE]
+>
+> `-a` flag in step 4 is used to attach the container's output to your terminal. If you want to run it in the background, you can omit this flag, and check the logs later using:
+>
+> ```sh
+> docker logs autumoodle
+> ```
+
+</details>
+
+<details>
+<summary>Via Command Line</summary>
+
 1.  Prerequisites:
 
-    - [uv](https://docs.astral.sh/uv/) (or Python 3.12+ and pip)
+    - (optional) [uv](https://docs.astral.sh/uv/) (or )
+    - (required when not using `uv`) Python 3.12+
     - git (or manually download the source code as a zip file and extract it)
 
 2.  Clone this repository:
@@ -19,7 +156,7 @@
 
 3.  Prepare virtual environment (optional but recommended):
 
-    - Using `uv` (recommanded):
+    - Using `uv` (recommended):
 
     ```sh
     uv venv .venv
@@ -35,7 +172,7 @@
 
 4.  Install dependencies:
 
-    - Using `uv` (recommanded):
+    - Using `uv` (recommended):
 
     ```sh
     uv sync
@@ -80,9 +217,11 @@
     python -m autumoodle -c path/to/config.json -s path/to/credentials.json
     ```
 
+</details>
+
 ## How this works
 
-1. Login ~~(which is sofar the most tricky part)~~.
+1. Login ~~(which is so far the most tricky part)~~.
 2. Find out which course(s) to download from.
 3. Fetch "Download Center" page of each course.
 4. Parse the page and find all categories and entries.
@@ -104,10 +243,10 @@ Based on this procedure, rules defined in the configuration file primarily targe
 
 ## Config
 
-Configurations are passed via two `json` files:
+Configurations are passed via two (or one) `json` files:
 
 - `config.json`: contains general configurations such as what to download, where to save, etc.
-- `credentials.json`: contains login credentials, i.e. username and password.
+- (optional) `credentials.json`: contains login credentials, i.e. username and password.
 
 These two files can have whatever name you like and be placed wherever you want, as long as the correct paths are provided via the `-c/--config` and `-s/--secret` arguments when running the CLI tool.
 
@@ -124,11 +263,12 @@ These two files can have whatever name you like and be placed wherever you want,
 >
 > or be entered interactively when running the CLI tool in an interactive terminal. However, a `credentials.json` file is generally recommended for ease of use.
 
-### config.json
+<details>
+<summary>config.json</summary>
 
 > [!NOTE]
 >
-> Examples can be found [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config.json)(for Linux) and [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config-win.json)(for Windows).
+> Examples can be found [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config.json)(for Linux) and [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config-win.json)(for Windows), also [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config-docker.json)(for Docker).
 
 - `destination_base` (optional, default: `~/Documents/AuTUMoodle`)
 
@@ -300,6 +440,10 @@ These two files can have whatever name you like and be placed wherever you want,
 >
 > Please make sure to download the corresponding browser binaries by running `playwright install` in your terminal after installing the `playwright` package if you are planning to use the `playwright` session implementation.
 
+> [!WARNING]
+>
+> `playwright` session implementation is currently not supported when running inside a Docker container, as it not only requires browser binaries, but also depends on many additional system libraries that a normal `python-slim` based Docker image does not have. If you really need to use `playwright` inside Docker, you may try to build your own Docker image based on `mcr.microsoft.com/playwright` images.
+
 - `playwright` (optional, only used when `session_type` is `playwright`)
 
   additional configurations for the Playwright session.
@@ -340,7 +484,10 @@ These two files can have whatever name you like and be placed wherever you want,
 
     the number of days after which old summary reports will be deleted.
 
-### credentials.json
+</details>
+
+<details>
+<summary>credentials.json</summary>
 
 > [!NOTE]
 >
@@ -354,13 +501,15 @@ These two files can have whatever name you like and be placed wherever you want,
 
   your TUM password, e.g. nevergonnagiveyouup123.
 
+</details>
+
 ## Pattern Matching
 
 - `match_type` can be one of the following:
 
-  - `literal`: exact string match
-  - `regex`: regular expression match
-  - `contains`: substring match
+  - `literal`: exact string match, e.g. `"file.pdf"`
+  - `regex`: regular expression match, e.g. `".*\.pdf$"`
+  - `contains`: substring match, e.g. `"file"`
 
 - `pattern` is the string or regular expression to match against.
 

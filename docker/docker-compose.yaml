@@ -1,0 +1,14 @@
+services:
+  autumoodle:
+    build:
+      context: ..
+      args:
+        PUID: 1000
+        PGID: 27
+    env_file:
+      - .env
+    container_name: autumoodle
+    volumes:
+      - /home/kolkas/Documents/Uni:/data
+      - /home/kolkas/.cache/autumoodle:/cache
+      - /home/kolkas/Repositories/AuTUMoodle/config-docker.json:/app/config.json:ro
