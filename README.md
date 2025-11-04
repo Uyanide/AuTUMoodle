@@ -2,10 +2,23 @@
 
 > stands for Auto - TUM - Moodle. I'm not that good at naming, I know...
 
+## Contents
+
+- [AuTUMoodle](#autumoodle)
+  - [Contents](#contents)
+  - [How to Use](#how-to-use)
+    - [Via Docker](#via-docker)
+    - [Directly via Python](#directly-via-python)
+  - [How this works](#how-this-works)
+  - [Config](#config)
+    - [config.json](#configjson)
+    - [credentials.json](#credentialsjson)
+  - [Pattern Matching](#pattern-matching)
+  - [Updating Methods](#updating-methods)
+
 ## How to Use
 
-<details>
-<summary> Via Docker </summary>
+### Via Docker
 
 1. Prerequisites:
 
@@ -135,10 +148,7 @@
 > docker logs autumoodle
 > ```
 
-</details>
-
-<details>
-<summary>Via Command Line</summary>
+### Directly via Python
 
 1.  Prerequisites:
 
@@ -217,8 +227,6 @@
     python -m autumoodle -c path/to/config.json -s path/to/credentials.json
     ```
 
-</details>
-
 ## How this works
 
 1. Login ~~(which is so far the most tricky part)~~.
@@ -263,8 +271,7 @@ These two files can have whatever name you like and be placed wherever you want,
 >
 > or be entered interactively when running the CLI tool in an interactive terminal. However, a `credentials.json` file is generally recommended for ease of use.
 
-<details>
-<summary>config.json</summary>
+### config.json
 
 > [!NOTE]
 >
@@ -484,10 +491,7 @@ These two files can have whatever name you like and be placed wherever you want,
 
     the number of days after which old summary reports will be deleted.
 
-</details>
-
-<details>
-<summary>credentials.json</summary>
+### credentials.json
 
 > [!NOTE]
 >
@@ -500,8 +504,6 @@ These two files can have whatever name you like and be placed wherever you want,
 - `password` (essential)
 
   your TUM password, e.g. nevergonnagiveyouup123.
-
-</details>
 
 ## Pattern Matching
 
