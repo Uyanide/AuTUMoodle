@@ -24,7 +24,7 @@
 
    - [Docker](https://docs.docker.com/get-docker/)
    - git (or manually download the source code as a zip file and extract it)
-   - (Optional) [Docker Compose](https://docs.docker.com/compose/install/)
+   - (optional) [Docker Compose](https://docs.docker.com/compose/install/)
 
 2. Clone this repository:
 
@@ -52,32 +52,32 @@
 
   1. Build the Docker image:
 
-  ```sh
-  docker build \
-    --build-arg PUID=$(id -u) \
-    --build-arg PGID=$(id -g) \
-    -t autumoodle:latest \
-    /path/to/AuTUMoodle/repository
-  ```
+     ```sh
+     docker build \
+       --build-arg PUID=$(id -u) \
+       --build-arg PGID=$(id -g) \
+       -t autumoodle:latest \
+       /path/to/AuTUMoodle/repository
+     ```
 
   2. Run the container, mapping the configuration file and necessary directories:
 
-  ```sh
-  docker run -a \
-    --name autumoodle \
-    -v /path/to/local/config.json:/app/config.json:ro \
-    -v /path/to/local/destination:/data \
-    -v /path/to/local/cache:/cache \
-    -e TUM_USERNAME=your_username \
-    -e TUM_PASSWORD=your_password \
-    autumoodle:latest
-  ```
+     ```sh
+     docker run -a \
+       --name autumoodle \
+       -v /path/to/local/config.json:/app/config.json:ro \
+       -v /path/to/local/destination:/data \
+       -v /path/to/local/cache:/cache \
+       -e TUM_USERNAME=your_username \
+       -e TUM_PASSWORD=your_password \
+       autumoodle:latest
+     ```
 
   3. Then each time you want to run the tool, execute:
 
-  ```sh
-  docker start -a autumoodle
-  ```
+     ```sh
+     docker start -a autumoodle
+     ```
 
 > [!NOTE]
 >
@@ -91,54 +91,54 @@
 
   1. Create a `docker-compose.yml` file, for example:
 
-  ```yaml
-  services:
-    autumoodle:
-      build:
-        context: /path/to/AuTUMoodle/repository
-        args:
-          PUID: ${PUID} # or replace with actual numeric value
-          PGID: ${PGID} # or replace with actual numeric value
-      container_name: autumoodle
-      volumes:
-        - /path/to/local/config.json:/app/config.json:ro
-        - /path/to/local/destination:/data
-        - /path/to/local/cache:/cache
-      environment: # or use env_file to load from .env
-        - TUM_USERNAME=your_username
-        - TUM_PASSWORD=your_password
-  ```
+     ```yaml
+     services:
+       autumoodle:
+         build:
+           context: /path/to/AuTUMoodle/repository
+           args:
+             PUID: ${PUID} # or replace with actual numeric value
+             PGID: ${PGID} # or replace with actual numeric value
+         container_name: autumoodle
+         volumes:
+           - /path/to/local/config.json:/app/config.json:ro
+           - /path/to/local/destination:/data
+           - /path/to/local/cache:/cache
+         environment: # or use env_file to load from .env
+           - TUM_USERNAME=your_username
+           - TUM_PASSWORD=your_password
+     ```
 
   An complete example can be found [here](https://github.com/Uyanide/AuTUMoodle/blob/master/docker/docker-compose.yml).
 
   2. Set the `PUID` and `PGID` environment variables in your shell:
 
-  ```sh
-  export PUID=$(id -u)
-  export PGID=$(id -g)
-  ```
+     ```sh
+     export PUID=$(id -u)
+     export PGID=$(id -g)
+     ```
 
-  Or if you already know your user id and group id, you can directly replace `${PUID}` and `${PGID}` in the `docker-compose.yml` file with the actual numeric values.
+     Or if you already know your user id and group id, you can directly replace `${PUID}` and `${PGID}` in the `docker-compose.yml` file with the actual numeric values.
 
   3. Build and run the container:
 
-  ```sh
-  docker compose up autumoodle
-  ```
+     ```sh
+     docker compose up autumoodle
+     ```
 
-  or
+     or
 
-  ```sh
-  docker-compose up autumoodle
-  ```
+     ```sh
+     docker-compose up autumoodle
+     ```
 
-  if you are using an older version of Docker.
+     if you are using an older version of Docker.
 
   4. Then each time you want to run the tool, execute:
 
-  ```sh
-  docker start -a autumoodle
-  ```
+     ```sh
+     docker start -a autumoodle
+     ```
 
 > [!NOTE]
 >
@@ -152,7 +152,7 @@
 
 1.  Prerequisites:
 
-    - (optional) [uv](https://docs.astral.sh/uv/) (or )
+    - (optional) [uv](https://docs.astral.sh/uv/)
     - (required when not using `uv`) Python 3.12+
     - git (or manually download the source code as a zip file and extract it)
 
