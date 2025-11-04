@@ -1,13 +1,14 @@
 '''
 Author: Uyanide pywang0608@foxmail.com
 Date: 2025-10-29 17:26:36
-LastEditTime: 2025-10-31 13:55:35
+LastEditTime: 2025-11-04 23:35:00
 Description: Interfaces for Moodle session implementations and data classes
 '''
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable
 
 from .utils import passthrough
 
@@ -49,6 +50,6 @@ class TUMMoodleSession(ABC):
         pass
 
     @abstractmethod
-    async def download_archive(self, course_id: str, save_path: Path, filter=passthrough) -> None:
+    async def download_archive(self, course_id: str, save_path: Path, filter: Callable[[list], list] = passthrough) -> None:
         """Download the archive of a course"""
         pass

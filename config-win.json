@@ -46,6 +46,15 @@
                         {
                             "pattern": "Übungen",
                             "match_type": "literal"
+                        },
+                        {
+                            "pattern": "Vorlesung",
+                            "match_type": "literal"
+                        },
+                        {
+                            "pattern": "Tutor-Area",
+                            "match_type": "literal",
+                            "destination": "Übungen"
                         }
                     ],
                     "files": [

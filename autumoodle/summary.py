@@ -1,7 +1,7 @@
 '''
 Author: Uyanide pywang0608@foxmail.com
 Date: 2025-11-03 13:03:19
-LastEditTime: 2025-11-03 14:11:25
+LastEditTime: 2025-11-04 22:46:02
 Description: Summary manager and Summary writer implementations
 '''
 
@@ -98,7 +98,10 @@ class _SummaryWriterCSV(SummaryWriter):
         counts = {}
         for entry in self._entries:
             counts[entry.status] = counts.get(entry.status, 0) + 1
-        return f"Total updated files: {total}. Details: " + ", ".join(f"{status}: {count}" for status, count in counts.items()) + \
+        ret = f"Total updated files: {total}."
+        if total == 0:
+            return ret + " No files were updated."
+        return ret + " Details: " + ", ".join(f"{status}: {count}" for status, count in counts.items()) + \
             f"\nSummary file saved at: {self._file_path}"
 
 

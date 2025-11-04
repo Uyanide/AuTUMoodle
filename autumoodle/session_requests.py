@@ -1,7 +1,7 @@
 '''
 Author: Uyanide pywang0608@foxmail.com
 Date: 2025-10-29 21:13:55
-LastEditTime: 2025-11-03 13:06:31
+LastEditTime: 2025-11-04 23:34:30
 Description: httpx(requests)-based Moodle session implementation
 '''
 
@@ -10,6 +10,7 @@ from pathlib import Path
 import httpx
 import pickle
 from bs4 import BeautifulSoup, Tag
+from typing import Callable
 
 from .log import Logger
 from . import utils
@@ -227,7 +228,8 @@ class TUMMoodleSession(intf.TUMMoodleSession):
             _input_name=category_input_name
         )
 
-    async def _perform_download(self, categories: list[CategoryInfo], page: BeautifulSoup, save_path: Path) -> Path | None:
+    async def _perform_download(self, categories: list[CategoryInfo], page: BeautifulSoup,
+                                save_path: Path) -> Path | None:
         form = page.find('form')
         if not form:  # should not happen
             raise RuntimeError("No form found on download center page")
@@ -282,12 +284,16 @@ class TUMMoodleSession(intf.TUMMoodleSession):
             if not download_response.headers.get('Content-Type', '') == 'application/x-zip':
                 raise RuntimeError(
                     f"Downloaded content is not a zip archive: {download_response.headers.get('Content-Type', '')}")
+            total_size = int(download_response.headers.get('Content-Length', '0'))
+            Logger.d("TUMMoodleSession", f"Downloading archive of size {total_size} bytes...")
+            downloaded_size = 0
             with open(save_path, 'wb') as f:
                 async for chunk in download_response.aiter_bytes():
                     f.write(chunk)
+                    downloaded_size += len(chunk)
             return save_path
 
-    async def download_archive(self, course_id: str, save_path: Path, filter=utils.passthrough):
+    async def download_archive(self, course_id: str, save_path: Path, filter: Callable[[list], list] = utils.passthrough) -> None:
         try:
             Logger.d("TUMMoodleSession", f"Downloading archives for course {course_id}...")
             download_url = DOWNLOAD_CENTER_URL(course_id)

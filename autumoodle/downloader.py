@@ -1,7 +1,7 @@
 '''
 Author: Uyanide pywang0608@foxmail.com
 Date: 2025-10-29 22:08:19
-LastEditTime: 2025-11-03 13:32:23
+LastEditTime: 2025-11-04 23:35:11
 Description: Main logic for downloading courses based on configuration
 '''
 
@@ -286,7 +286,7 @@ class TUMMoodleDownloader():
                 course,
                 self._config.destination_base,
                 self._config.ignored_files,
-                self._summary_writer
+                self._summary_writer,
             ).proc()
         except Exception as e:
             Logger.e("Downloader", f"Error downloading from course '{course.title}': {e}")

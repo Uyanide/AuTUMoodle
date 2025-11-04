@@ -1,10 +1,11 @@
 '''
 Author: Uyanide pywang0608@foxmail.com
 Date: 2025-10-26 21:59:22
-LastEditTime: 2025-10-31 13:59:44
+LastEditTime: 2025-11-04 23:34:40
 Description: Playwright-based Moodle session implementation
 '''
 
+from typing import Callable
 from playwright.async_api import async_playwright, Playwright, Browser, Page, BrowserContext, Locator, Download
 from dataclasses import dataclass
 from pathlib import Path
@@ -293,7 +294,7 @@ class TUMMoodleSession(intf.TUMMoodleSession):
             Logger.d("TUMMoodleSession", f"Download initiated, waiting for completion...")
             return await download_info.value
 
-    async def download_archive(self, course_id: str, save_path: Path, filter=utils.passthrough):
+    async def download_archive(self, course_id: str, save_path: Path, filter: Callable[[list], list] = utils.passthrough) -> None:
         '''Download the archive for the specified course ID, applying the filter function to resources.'''
         page = None
         try:
@@ -329,7 +330,7 @@ class TUMMoodleSession(intf.TUMMoodleSession):
             download = await self._perform_download(filtered_categories, page)
             if download:
                 Logger.d("TUMMoodleSession", f"Downloaded archive will be saved to: {save_path}")
-                return await download.save_as(str(save_path))
+                await download.save_as(str(save_path))
             else:
                 Logger.w("TUMMoodleSession", f"No archive was downloaded for course {course_id}.")
 
