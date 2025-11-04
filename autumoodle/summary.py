@@ -1,3 +1,10 @@
+'''
+Author: Uyanide pywang0608@foxmail.com
+Date: 2025-11-03 13:03:19
+LastEditTime: 2025-11-03 14:11:25
+Description: Summary manager and Summary writer implementations
+'''
+
 from abc import ABC, abstractmethod
 from pathlib import Path
 import time

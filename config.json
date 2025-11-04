@@ -46,6 +46,10 @@
                         {
                             "pattern": "Übungen",
                             "match_type": "literal"
+                        },
+                        {
+                            "pattern": "Vorlesung",
+                            "match_type": "literal"
                         }
                     ],
                     "files": [
