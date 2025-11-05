@@ -123,30 +123,26 @@
   3. Build and run the container:
 
      ```sh
-     docker compose up autumoodle
+     docker compose up
      ```
 
      or
 
      ```sh
-     docker-compose up autumoodle
+     docker-compose up
      ```
 
      if you are using an older version of Docker.
 
+     Optionally, you can add the `-d` flag to run the container in detached mode, or `--build` flag to force rebuild the image (useful when e.g. after editing source code).
+
   4. Then each time you want to run the tool, execute:
 
      ```sh
-     docker start -a autumoodle
+     docker start autumoodle
      ```
 
-> [!NOTE]
->
-> `-a` flag in step 4 is used to attach the container's output to your terminal. If you want to run it in the background, you can omit this flag, and check the logs later using:
->
-> ```sh
-> docker logs autumoodle
-> ```
+     Optionally, a `-a` flag can be added to attach the container's output to your terminal.
 
 ### Directly via Python
 

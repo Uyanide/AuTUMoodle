@@ -1,6 +1,181 @@
 {
     "destination_base": "~/Documents/Uni",
-    "courses": [],
+    "courses": [
+        {
+            "pattern": "Analysis für Informatik [MA0902]",
+            "match_type": "literal",
+            "semester": "WS25_26",
+            "destination_base": "AnaFI",
+            "config_type": "category_manual",
+            "config": {
+                "rules": {
+                    "categories": [
+                        {
+                            "pattern": "Übungen",
+                            "match_type": "literal"
+                        },
+                        {
+                            "pattern": "Aufgabenabgabe",
+                            "match_type": "literal"
+                        },
+                        {
+                            "pattern": ".*",
+                            "match_type": "regex",
+                            "destination": "Sonstiges"
+                        }
+                    ],
+                    "entries": [
+                        {
+                            "pattern": "Übungsgruppen",
+                            "match_type": "regex",
+                            "ignore": true
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "pattern": "Diskrete Strukturen (IN0015)",
+            "match_type": "literal",
+            "semester": "WS25_26",
+            "destination_base": "DS",
+            "config_type": "category_manual",
+            "config": {
+                "rules": {
+                    "categories": [
+                        {
+                            "pattern": "Übungen",
+                            "match_type": "literal"
+                        },
+                        {
+                            "pattern": "Vorlesung",
+                            "match_type": "literal"
+                        },
+                        {
+                            "pattern": "Tutor-Area",
+                            "match_type": "literal",
+                            "destination": "Übungen"
+                        }
+                    ],
+                    "files": [
+                        {
+                            "pattern": "Feedback.*\\.html",
+                            "match_type": "regex",
+                            "ignore": true
+                        },
+                        {
+                            "pattern": "^exercise_sheet_",
+                            "match_type": "regex",
+                            "directory": "Übungen"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "pattern": "Einführung in die Informatik (IN0001)",
+            "match_type": "literal",
+            "semester": "WS25_26",
+            "destination_base": "EIDI",
+            "config_type": "entry_auto"
+        },
+        {
+            "pattern": "Einführung in die Rechnerarchitektur (IN0004)",
+            "match_type": "literal",
+            "semester": "WS25_26",
+            "destination_base": "ERA",
+            "config_type": "entry_manual",
+            "config": {
+                "rules": {
+                    "entries": [
+                        {
+                            "pattern": "Tutorienübersicht",
+                            "match_type": "literal",
+                            "ignore": true
+                        },
+                        {
+                            "pattern": "^Vorlesung",
+                            "match_type": "regex",
+                            "directory": "Vorlesungen"
+                        },
+                        {
+                            "pattern": "^Zentralübung",
+                            "match_type": "regex",
+                            "directory": "Übungen"
+                        },
+                        {
+                            "pattern": "^Übungsblatt",
+                            "match_type": "regex",
+                            "directory": "Übungen"
+                        },
+                        {
+                            "pattern": ".*",
+                            "match_type": "regex",
+                            "directory": "Sonstiges"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "pattern": "Grundlagen: Betriebssysteme und Systemsoftware (IN0009)",
+            "match_type": "literal",
+            "semester": "WS25_26",
+            "destination_base": "GBS",
+            "config_type": "entry_auto"
+        },
+        {
+            "pattern": "Grundlagen: Datenbanken (IN0008)",
+            "match_type": "literal",
+            "semester": "WS25_26",
+            "destination_base": "GDB",
+            "config_type": "entry_manual",
+            "config": {
+                "rules": {
+                    "entries": [
+                        {
+                            "pattern": "^Blatt",
+                            "match_type": "regex",
+                            "directory": "Übungen"
+                        },
+                        {
+                            "pattern": ".*",
+                            "match_type": "regex",
+                            "directory": "Übungen"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "pattern": "IT Sicherheit (IN0042)",
+            "match_type": "literal",
+            "semester": "WS25_26",
+            "destination_base": "ITSec",
+            "config_type": "entry_manual",
+            "config": {
+                "rules": {
+                    "entries": [
+                        {
+                            "pattern": "^Kapitel",
+                            "match_type": "regex",
+                            "directory": "Folien"
+                        },
+                        {
+                            "pattern": "^Übungsblatt",
+                            "match_type": "regex",
+                            "directory": "Übungen"
+                        },
+                        {
+                            "pattern": ".*",
+                            "match_type": "regex",
+                            "directory": "Sonstiges"
+                        }
+                    ]
+                }
+            }
+        }
+    ],
     "ignored_files": [
         {
             "pattern": "intro.html",

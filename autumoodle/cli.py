@@ -1,7 +1,7 @@
 '''
 Author: Uyanide pywang0608@foxmail.com
 Date: 2025-10-29 22:08:19
-LastEditTime: 2025-10-31 13:32:03
+LastEditTime: 2025-11-05 00:19:10
 Description: CLI entry point for autumoodle
 '''
 
