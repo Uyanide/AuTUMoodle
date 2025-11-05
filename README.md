@@ -326,9 +326,29 @@ These two files can have whatever name you like and be placed wherever you want,
 
 ### config.json
 
-> [!NOTE]
->
-> Examples can be found [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config.json)(for Linux) and [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config-win.json)(for Windows), also [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config-docker.json)(for Docker).
+A minimal example could look like:
+
+```json
+{
+  "courses": [
+    {
+      "pattern": ".*",
+      "match_type": "regex",
+      "semester": "WS25_26"
+    }
+  ]
+}
+```
+
+which will download all courses in the winter semester 2025/2026, save them to the default location (`~/Documents/AuTUMoodle`), and organize the downloaded files into sub-directories based on the course titles and categories as defined in Moodle.
+
+Complete examples can be found [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config.json)(for Linux), [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config-win.json)(for Windows) and [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config-docker.json)(for Docker).
+
+Detailed explanation of each field:
+
+- `"$schema": "https://raw.githubusercontent.com/Uyanide/AuTUMoodle/master/schema/config.schema.json"` (optional)
+
+  URL to the JSON schema for this configuration file. This is useful when using editors that support JSON schema validation (e.g. VSCode) to provide auto-completion and validation of the config file.
 
 - `destination_base` (optional, default: `~/Documents/AuTUMoodle`)
 
@@ -344,7 +364,7 @@ These two files can have whatever name you like and be placed wherever you want,
 
   - `semester` (required)
 
-    the semester of the course, e.g. WS25_26, SS26, etc.
+    the semester of the course, e.g. WS_25/26, SS_26.
 
   - `destination_base` (optional)
 

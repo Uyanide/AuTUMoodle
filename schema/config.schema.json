@@ -1,0 +1,329 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema#",
+    "title": "AuTUMoodle Configuration Schema",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "$schema": {
+            "type": "string",
+            "description": "Schema version identifier"
+        },
+        "destination_base": {
+            "type": "string",
+            "default": "~/Documents/AuTUMoodle",
+            "description": "Base directory where all courses will be downloaded"
+        },
+        "log_level": {
+            "type": "string",
+            "enum": [
+                "DEBUG",
+                "INFO",
+                "WARNING",
+                "ERROR"
+            ],
+            "default": "INFO",
+            "description": "Log level"
+        },
+        "cache_dir": {
+            "type": "string",
+            "default": "~/.cache/autumoodle",
+            "description": "Directory where cached files will be stored"
+        },
+        "session_type": {
+            "type": "string",
+            "enum": [
+                "requests",
+                "playwright"
+            ],
+            "default": "requests",
+            "description": "Implementation of the session to use"
+        },
+        "playwright": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Additional configurations for Playwright session",
+            "properties": {
+                "headless": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Run browser in headless mode"
+                },
+                "browser": {
+                    "type": "string",
+                    "enum": [
+                        "chromium",
+                        "firefox"
+                    ],
+                    "default": "firefox",
+                    "description": "Browser to use"
+                }
+            }
+        },
+        "session": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Additional configurations for session manager",
+            "properties": {
+                "save": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Save session cookies to file"
+                },
+                "save_path": {
+                    "type": "string",
+                    "description": "Path to save session cookies"
+                }
+            }
+        },
+        "summary": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Configurations for summary report generation",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable summary report generation"
+                },
+                "path": {
+                    "type": "string",
+                    "description": "Directory where summary reports will be saved"
+                },
+                "expire_days": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 7,
+                    "description": "Days after which old summary reports will be deleted"
+                }
+            }
+        },
+        "ignored_files": {
+            "type": "array",
+            "description": "Global rules to match files that should be ignored",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "pattern",
+                    "match_type"
+                ],
+                "properties": {
+                    "pattern": {
+                        "type": "string",
+                        "description": "Pattern to match file basename with extension"
+                    },
+                    "match_type": {
+                        "type": "string",
+                        "enum": [
+                            "literal",
+                            "contains",
+                            "regex"
+                        ],
+                        "description": "Type of pattern matching"
+                    }
+                }
+            }
+        },
+        "courses": {
+            "type": "array",
+            "description": "List of courses to download from",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "pattern",
+                    "match_type",
+                    "semester"
+                ],
+                "properties": {
+                    "pattern": {
+                        "type": "string",
+                        "description": "Pattern to match course title"
+                    },
+                    "match_type": {
+                        "type": "string",
+                        "enum": [
+                            "literal",
+                            "contains",
+                            "regex"
+                        ],
+                        "description": "Type of pattern matching"
+                    },
+                    "semester": {
+                        "type": "string",
+                        "pattern": "^(?:[Ww][Ss]_?\\d{2}(?:[/_]\\d{2})?|[Ss][Ss]_?\\d{2})$",
+                        "description": "Semester of the course (e.g., WS25_26, SS_26)"
+                    },
+                    "destination_base": {
+                        "type": "string",
+                        "description": "Base directory for this course's materials"
+                    },
+                    "update": {
+                        "type": "string",
+                        "enum": [
+                            "skip",
+                            "overwrite",
+                            "rename"
+                        ],
+                        "default": "rename",
+                        "description": "How to handle updated files"
+                    },
+                    "config_type": {
+                        "type": "string",
+                        "enum": [
+                            "category_auto",
+                            "category_manual",
+                            "entry_auto",
+                            "entry_manual"
+                        ],
+                        "default": "category_auto",
+                        "description": "How to organize course materials"
+                    },
+                    "config": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "description": "Additional configuration based on config_type",
+                        "properties": {
+                            "rules": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                    "categories": {
+                                        "type": "array",
+                                        "description": "Rules to match categories",
+                                        "items": {
+                                            "type": "object",
+                                            "additionalProperties": false,
+                                            "required": [
+                                                "pattern",
+                                                "match_type"
+                                            ],
+                                            "properties": {
+                                                "pattern": {
+                                                    "type": "string",
+                                                    "description": "Pattern to match category title"
+                                                },
+                                                "match_type": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "literal",
+                                                        "contains",
+                                                        "regex"
+                                                    ],
+                                                    "description": "Type of pattern matching"
+                                                },
+                                                "destination": {
+                                                    "type": "string",
+                                                    "description": "Directory where materials in this category will be saved"
+                                                },
+                                                "update": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "skip",
+                                                        "overwrite",
+                                                        "rename"
+                                                    ],
+                                                    "description": "How to handle updated files"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "entries": {
+                                        "type": "array",
+                                        "description": "Rules to match entries",
+                                        "items": {
+                                            "type": "object",
+                                            "additionalProperties": false,
+                                            "required": [
+                                                "pattern",
+                                                "match_type"
+                                            ],
+                                            "properties": {
+                                                "pattern": {
+                                                    "type": "string",
+                                                    "description": "Pattern to match entry title"
+                                                },
+                                                "match_type": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "literal",
+                                                        "contains",
+                                                        "regex"
+                                                    ],
+                                                    "description": "Type of pattern matching"
+                                                },
+                                                "directory": {
+                                                    "type": "string",
+                                                    "description": "Directory where this entry will be saved"
+                                                },
+                                                "update": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "skip",
+                                                        "overwrite",
+                                                        "rename"
+                                                    ],
+                                                    "description": "How to handle updated files"
+                                                },
+                                                "ignore": {
+                                                    "type": "boolean",
+                                                    "default": false,
+                                                    "description": "Ignore entries matching this rule"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "files": {
+                                        "type": "array",
+                                        "description": "Rules to match actual downloaded files",
+                                        "items": {
+                                            "type": "object",
+                                            "additionalProperties": false,
+                                            "required": [
+                                                "pattern",
+                                                "match_type"
+                                            ],
+                                            "properties": {
+                                                "pattern": {
+                                                    "type": "string",
+                                                    "description": "Pattern to match file basename with extension"
+                                                },
+                                                "match_type": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "literal",
+                                                        "contains",
+                                                        "regex"
+                                                    ],
+                                                    "description": "Type of pattern matching"
+                                                },
+                                                "directory": {
+                                                    "type": "string",
+                                                    "description": "Directory where this file will be saved"
+                                                },
+                                                "update": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "skip",
+                                                        "overwrite",
+                                                        "rename"
+                                                    ],
+                                                    "description": "How to handle updated files"
+                                                },
+                                                "ignore": {
+                                                    "type": "boolean",
+                                                    "default": false,
+                                                    "description": "Ignore files matching this rule"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

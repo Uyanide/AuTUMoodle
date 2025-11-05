@@ -1,4 +1,5 @@
 {
+    "$schema": "https://raw.githubusercontent.com/Uyanide/AuTUMoodle/master/schema/config.schema.json",
     "destination_base": "/data",
     "cache_dir": "/cache",
     "session_type": "requests",
@@ -10,6 +11,12 @@
         "save": true
     },
     "log_level": "INFO",
+    "ignored_files": [
+        {
+            "pattern": "intro.html",
+            "match_type": "literal"
+        }
+    ],
     "courses": [
         {
             "pattern": "Analysis für Informatik [MA0902]",
@@ -184,12 +191,6 @@
                     ]
                 }
             }
-        }
-    ],
-    "ignored_files": [
-        {
-            "pattern": "intro.html",
-            "match_type": "literal"
         }
     ]
 }

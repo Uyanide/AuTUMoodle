@@ -1,5 +1,25 @@
 {
+    "$schema": "https://raw.githubusercontent.com/Uyanide/AuTUMoodle/master/schema/config.schema.json",
     "destination_base": "D:/1-TUM/Info",
+    "cache_dir": "D:/1-TUM/Info/.cache",
+    "session_type": "requests",
+    "playwright": {
+        "browser": "firefox",
+        "headless": true
+    },
+    "summary": {
+        "enabled": true
+    },
+    "session": {
+        "save": true
+    },
+    "log_level": "DEBUG",
+    "ignored_files": [
+        {
+            "pattern": "intro.html",
+            "match_type": "literal"
+        }
+    ],
     "courses": [
         {
             "pattern": "Analysis für Informatik [MA0902]",
@@ -175,27 +195,5 @@
                 }
             }
         }
-    ],
-    "ignored_files": [
-        {
-            "pattern": "intro.html",
-            "match_type": "literal"
-        }
-    ],
-    "cache_dir": "D:/1-TUM/Info/.cache",
-    "session_type": "requests",
-    "playwright": {
-        "browser": "firefox",
-        "headless": true
-    },
-    "summary": {
-        "enabled": true,
-        "path": "D:/1-TUM/Info/summaries",
-        "expire_days": 7
-    },
-    "session": {
-        "save": true,
-        "save_path": "D:/1-TUM/Info/.cache/session.dat"
-    },
-    "log_level": "DEBUG"
+    ]
 }
