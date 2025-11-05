@@ -1,44 +1,113 @@
 '''
 Author: Uyanide pywang0608@foxmail.com
 Date: 2025-10-29 22:08:19
-LastEditTime: 2025-11-05 00:19:10
+LastEditTime: 2025-11-05 12:52:07
 Description: CLI entry point for autumoodle
 '''
 
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Action
 from pathlib import Path
 import json
+import sys
+import os
+import getpass
 
 from autumoodle.downloader import TUMMoodleDownloader
 
 from .log import Logger
 from .config_mgr import Config
-from . import credential
+from .utils import PatternMatcher
+
+
+ENV_USERNAME = "TUM_USERNAME"
+ENV_PASSWORD = "TUM_PASSWORD"
+
+
+class OrderedPatternAction(Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        if not hasattr(namespace, 'ordered_patterns'):
+            namespace.ordered_patterns = []
+        namespace.ordered_patterns.append((self.dest, values))
 
 
 def get_argparser():
     parser = ArgumentParser()
     parser.add_argument("-c", "--config", dest="config_path", default="config.json",  help="Path to configuration file (json)")
     parser.add_argument("-s", "--secret", dest="secret_path", help="Path to secret file (json)")
+    parser.add_argument(
+        "-r", "--regex", dest="regex", action=OrderedPatternAction, metavar="REGEX",
+        help="Match course title against the given regular expression (can be given multiple times)."
+    )
+    parser.add_argument(
+        "-t", "--contains", dest="contains", action=OrderedPatternAction, metavar="SUBSTR",
+        help="Match course title against the given substring (can be given multiple times)."
+    )
+    parser.add_argument(
+        "-l", "--literal", dest="literal", action=OrderedPatternAction, metavar="LITERAL",
+        help="Match course title against the given literal string (can be given multiple times)."
+    )
     return parser
+
+
+def load_config(config_path: Path) -> Config:
+    if not config_path.exists() or not config_path.is_file():
+        raise FileNotFoundError(f"Configuration file not found: {config_path}")
+    config_dict = json.loads(config_path.read_text(encoding="utf-8"))
+    return Config.from_dict(config_dict)
+
+
+def get_additional_matchers(args):
+    matchers = []
+    if hasattr(args, 'ordered_patterns'):
+        for pattern_type, value in args.ordered_patterns:
+            if pattern_type == 'regex':
+                matchers.append(PatternMatcher(value, "regex"))
+            elif pattern_type == 'contains':
+                matchers.append(PatternMatcher(value, "contains"))
+            elif pattern_type == 'literal':
+                matchers.append(PatternMatcher(value, "literal"))
+    return matchers
+
+
+def get_credentials(credential_path: Path | None = None):
+    # First try envs
+    username: str = os.environ.get(ENV_USERNAME, "")
+    password: str = os.environ.get(ENV_PASSWORD, "")
+
+    # Then try credential file
+    if credential_path is not None and credential_path.exists() and credential_path.is_file():
+        try:
+            cred_dict = json.loads(credential_path.read_text())
+            username = username if username else cred_dict.get("username", "")
+            password = password if password else cred_dict.get("password", "")
+        except json.JSONDecodeError:
+            pass
+
+    # Finally ask user if in interactive shell
+    if sys.stdin.isatty():
+        if not username:
+            username = input("TUM Username: ")
+        if not password:
+            password = getpass.getpass("TUM Password: ")
+    return username, password
 
 
 async def run():
     arg_parser = get_argparser()
     args = arg_parser.parse_args()
+
     config_path = Path(args.config_path).expanduser()
-    if not config_path.exists() or not config_path.is_file():
-        raise FileNotFoundError(f"Configuration file not found: {config_path}")
-    config_dict = json.loads(config_path.read_text(encoding="utf-8"))
-    config = Config.from_dict(config_dict)
+    config = load_config(config_path)
     Logger.set_level(config.log_level)
 
-    username, password = credential.get_credentials(Path(args.secret_path) if args.secret_path else None)
+    additional_matchers = get_additional_matchers(args)
+
+    username, password = get_credentials(Path(args.secret_path) if args.secret_path else None)
     if not username or not password:
         raise ValueError(
             "Username or password are missing. "
             "Either provide a secret file (via -s/--secret), "
-            f"or set the {credential.ENV_USERNAME} and {credential.ENV_PASSWORD} environment variables.")
+            f"or set the {ENV_USERNAME} and {ENV_PASSWORD} environment variables.")
     config.set_credentials(username, password)
 
-    await TUMMoodleDownloader(config).do_magic()
+    await TUMMoodleDownloader(config, additional_matchers).do_magic()

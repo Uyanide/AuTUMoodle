@@ -1,7 +1,7 @@
 '''
 Author: Uyanide pywang0608@foxmail.com
 Date: 2025-10-29 22:08:19
-LastEditTime: 2025-11-04 23:35:11
+LastEditTime: 2025-11-05 12:45:57
 Description: Main logic for downloading courses based on configuration
 '''
 
@@ -245,7 +245,6 @@ class _CourseProcess():
                 self._course_config.files,
                 self._summary_writer
             )
-            Logger.i("Downloader", f"Finished processing course '{self._course.title}'")
         finally:
             if temp_zip_path.exists():
                 temp_zip_path.unlink()
@@ -255,10 +254,21 @@ class TUMMoodleDownloader():
     _session: TUMMoodleSession
     _config: Config
     _summary_writer: SummaryWriter | None
+    _additional_matchers: list[PatternMatcher]
 
-    def __init__(self, config: Config):
+    def __init__(self, config: Config, additional_matchers: list[PatternMatcher]):
         self._config = config
         self._summary_writer = None
+        self._additional_matchers = additional_matchers
+
+    def _check_additional_matchers(self, course_title: str) -> bool:
+        # if not provided, always match
+        if not self._additional_matchers:
+            return True
+        for matcher in self._additional_matchers:
+            if matcher.match(course_title):
+                return True
+        return False
 
     async def _proc_course(self, course: CourseInfo):
         try:
@@ -280,6 +290,11 @@ class TUMMoodleDownloader():
                 Logger.d("Downloader", f"Skipping course '{course.title}': no matching config found")
                 return
 
+            if not self._check_additional_matchers(course.title):
+                Logger.d("Downloader", f"Skipping course '{course.title}': does not match any of the additional matchers")
+                return
+
+            Logger.i("Downloader", f"Started processing course '{course.title}'")
             await _CourseProcess(
                 self._session,
                 course_config,
@@ -288,6 +303,7 @@ class TUMMoodleDownloader():
                 self._config.ignored_files,
                 self._summary_writer,
             ).proc()
+            Logger.i("Downloader", f"Finished processing course '{course.title}'")
         except Exception as e:
             Logger.e("Downloader", f"Error downloading from course '{course.title}': {e}")
 

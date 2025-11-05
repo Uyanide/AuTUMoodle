@@ -9,6 +9,7 @@
   - [How to Use](#how-to-use)
     - [Via Docker](#via-docker)
     - [Directly via Python](#directly-via-python)
+  - [CLI Arguments](#cli-arguments)
   - [How this works](#how-this-works)
   - [Config](#config)
     - [config.json](#configjson)
@@ -20,7 +21,7 @@
 
 > [!TIP]
 >
-> To set up a scheduled task, you may consider using `cron` on Linux systems or `Task Scheduler` on Windows systems. e.g. a `cron` job that runs every day at 2am (with Docker):
+> To set up a scheduled task, one may consider using `cron` on Linux systems or `Task Scheduler` on Windows systems. e.g. a `cron` job that runs every day at 2am (with Docker):
 >
 > ```sh
 > 0 2 * * * docker start -a autumoodle
@@ -108,7 +109,7 @@
 
 - Using `docker-compose` (recommended):
 
-  1. Create a `compose.yaml` file, for example:
+  1. Create a `compose.yaml` or `docker-compose.yaml` file, for example:
 
      ```yaml
      name: autumoodle # project name
@@ -139,7 +140,7 @@
      export PGID=$(id -g)
      ```
 
-     Or if you already know the exact user id and group id, you can directly replace `${PUID}` and `${PGID}` in the `docker-compose.yml` file with the actual numeric values.
+     Or if you already know the exact user id and group id, you can directly replace `${PUID}` and `${PGID}` in the `compose.yaml` file with the actual numeric values.
 
   3. Build and run the container:
 
@@ -243,6 +244,47 @@
     ```sh
     python -m autumoodle -c path/to/config.json -s path/to/credentials.json
     ```
+
+## CLI Arguments
+
+| Argument                     | Description                                                  |
+| ---------------------------- | ------------------------------------------------------------ |
+| -c CONFIG, --config CONFIG   | Path to the config file                                      |
+| -s SECRET, --secret SECRET   | Path to the credential file                                  |
+| -h, --help                   | Show help message and exit                                   |
+| -r REGEX, --regex REGEX      | Match course title against the given regular expression...   |
+| -t SUBSTR, --contains SUBSTR | Match course title that contains the given substring...      |
+| -l STR, --literal STR        | Match course title that exactly matches the given literal... |
+
+`-r/--regex`, `-t/--contains` and `-l/--literal` arguments can be given multiple times, which serve as additional filters for courses to download from, in addition to those defined in the configuration file. Only the courses matching at least **one of** the courses defined in the configuration file **and** at least **one of** the additional filters provided here (if any) will be processed. The order of these additional filters matters, as they are evaluated in the same order as they are provided in the command line.
+
+If none is provided, all courses defined in the configuration file will be processed (same effect as a single `--regex ".*"`).
+
+e.g.
+
+```sh
+python -m autumoodle -c config.json -s credentials.json -r "^Analysis" -t "IN0009"
+```
+
+will select courses using config.json, and only download from courses whose title starts with "Analysis" **or** contains "IN0009".
+
+> [!NOTE]
+>
+> When using `docker-compose` or `docker run`, these additional filters can be passed via the `command` field/argument, e.g.:
+>
+> ```yaml
+> services:
+>   autumoodle:
+>     ...
+>     command: ["-r", "^Analysis", "-t", "IN0009"]
+>     ...
+> ```
+>
+> or
+>
+> ```sh
+> docker run ... autumoodle:latest -r "^Analysis" -t "IN0009"
+> ```
 
 ## How this works
 
