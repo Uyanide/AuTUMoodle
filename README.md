@@ -108,10 +108,10 @@
 
 - Using `docker-compose` (recommended):
 
-  1. Create a `docker-compose.yml` file, for example:
+  1. Create a `compose.yaml` file, for example:
 
      ```yaml
-     name: autumoodle
+     name: autumoodle # project name
 
      services:
        autumoodle:
@@ -120,7 +120,7 @@
            args:
              PUID: ${PUID} # or replace with actual numeric value
              PGID: ${PGID} # or replace with actual numeric value
-         container_name: autumoodle
+         container_name: autumoodle # container name
          volumes:
            - /path/to/local/config.json:/app/config.json:ro
            - /path/to/local/destination:/data
@@ -130,7 +130,7 @@
            - TUM_PASSWORD=your_password
      ```
 
-     A complete example can be found [here](https://github.com/Uyanide/AuTUMoodle/blob/master/docker/docker-compose.yml).
+     A complete example can be found [here](https://github.com/Uyanide/AuTUMoodle/blob/master/docker/compose.yaml).
 
   2. Set the `PUID` and `PGID` environment variables in your shell:
 
