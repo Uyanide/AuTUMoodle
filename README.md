@@ -18,6 +18,14 @@
 
 ## How to Use
 
+> [!TIP]
+>
+> To set up a scheduled task, you may consider using `cron` on Linux systems or `Task Scheduler` on Windows systems. e.g. a `cron` job that runs every day at 2am (with Docker):
+>
+> ```sh
+> 0 2 * * * docker start -a autumoodle
+> ```
+
 ### Via Docker
 
 1. Prerequisites:
@@ -36,15 +44,26 @@
 
 3. Prepare configuration files:
 
-   When using Docker, only `config.json` is required, as credentials can be passed via environment variables. A template config file can be found [here](https://github.com/Uyanide/AuTUMoodle/blob/master/docker/config-template.json). The following entries should **NOT** be changed:
+   When using Docker, only `config.json` is required, as credentials can be passed via environment variables. A minimal config file could look like:
 
-   - `destination_base`: `/data`
-   - `cache_dir`: `/cache`
-   - `session_type`: `requests` (`playwright` is currently not supported)
+   ```json
+   {
+     "destination_base": "/data",
+     "cache_dir": "/cache",
+     "session_type": "requests",
+     "courses": []
+   }
+   ```
+
+   where the following entries should **NOT** be changed:
+
+   - `destination_base`: `/data` (the directory inside the container where downloaded files will be saved to)
+   - `cache_dir`: `/cache` (the directory inside the container where cached files will be stored)
+   - `session_type`: `requests` (`playwright` is currently not supported, see [Config](#config) for details)
 
    Please also keep in mind that all the absolute paths in the config file should refer to paths inside the container (i.e. starting with `/data` or `/cache`), not paths on the host machine (e.g. `/home/ACoolGuy/Documents/Uni`).
 
-> For more information about the configuration file, please refer to the [Config](#config) section.
+> For detailed information about the configuration file, please refer to the [Config](#config) section.
 
 4.  Run the Docker container:
 
@@ -109,7 +128,7 @@
            - TUM_PASSWORD=your_password
      ```
 
-  An complete example can be found [here](https://github.com/Uyanide/AuTUMoodle/blob/master/docker/docker-compose.yml).
+     A complete example can be found [here](https://github.com/Uyanide/AuTUMoodle/blob/master/docker/docker-compose.yml).
 
   2. Set the `PUID` and `PGID` environment variables in your shell:
 
@@ -118,18 +137,18 @@
      export PGID=$(id -g)
      ```
 
-     Or if you already know your user id and group id, you can directly replace `${PUID}` and `${PGID}` in the `docker-compose.yml` file with the actual numeric values.
+     Or if you already know the exact user id and group id, you can directly replace `${PUID}` and `${PGID}` in the `docker-compose.yml` file with the actual numeric values.
 
   3. Build and run the container:
 
      ```sh
-     docker compose up
+     docker compose up autumoodle
      ```
 
      or
 
      ```sh
-     docker-compose up
+     docker-compose up autumoodle
      ```
 
      if you are using an older version of Docker.
@@ -142,7 +161,7 @@
      docker start autumoodle
      ```
 
-     Optionally, a `-a` flag can be added to attach the container's output to your terminal.
+     Additionally, a `-a` flag can be added to attach the container's output to your terminal.
 
 ### Directly via Python
 
@@ -281,11 +300,11 @@ These two files can have whatever name you like and be placed wherever you want,
 
   a list of json objects, each representing a course to download from. ONLY the courses configured here will be processed.
 
-  - `pattern` and `match_type` (essential)
+  - `pattern` and `match_type` (required)
 
     matches the title of the course. See [pattern matching](#pattern-matching) for how this works.
 
-  - `semester` (essential)
+  - `semester` (required)
 
     the semester of the course, e.g. WS25_26, SS26, etc.
 
@@ -331,7 +350,7 @@ These two files can have whatever name you like and be placed wherever you want,
 
     a list of json objects, each representing a rule to match categories in the course. Each rule has the following fields:
 
-    - `pattern` and `match_type` (essential)
+    - `pattern` and `match_type` (required)
 
       matches the title of the category. See [pattern matching](#pattern-matching) for how this works.
 
@@ -349,7 +368,7 @@ These two files can have whatever name you like and be placed wherever you want,
 
     a list of json objects, each representing a rule to match entries in the course. Each rule has the following fields:
 
-    - `pattern` and `match_type` (essential)
+    - `pattern` and `match_type` (required)
 
       matches the title of the entry. See [pattern matching](#pattern-matching) for how this works.
 
@@ -371,7 +390,7 @@ These two files can have whatever name you like and be placed wherever you want,
 
     a list of json objects, each representing a rule to match **actual downloaded files** in the course. The matching processes will only take place after the files are downloaded and parsed from the ZIP archive, and will have the highest priority. Each rule has the following fields:
 
-    - `pattern` and `match_type` (essential)
+    - `pattern` and `match_type` (required)
 
       matches the basename with extension of the file. See [pattern matching](#pattern-matching) for how this works.
 
@@ -393,7 +412,7 @@ These two files can have whatever name you like and be placed wherever you want,
 
   a list of json objects, each representing a rule to match files that should be ignored globally (i.e. for all courses). Each rule has the following fields:
 
-  - `pattern` and `match_type` (essential)
+  - `pattern` and `match_type` (required)
 
     matches the basename with extension of the file. See [pattern matching](#pattern-matching) for how this works.
 
@@ -493,11 +512,11 @@ These two files can have whatever name you like and be placed wherever you want,
 >
 > An example from myself can be found [here](https://www.youtube.com/watch?v=dQw4w9WgXcQ) :)
 
-- `username` (essential)
+- `username` (required)
 
   your TUM username, e.g. ab12cde.
 
-- `password` (essential)
+- `password` (required)
 
   your TUM password, e.g. nevergonnagiveyouup123.
 
