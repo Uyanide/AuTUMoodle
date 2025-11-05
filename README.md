@@ -111,6 +111,8 @@
   1. Create a `docker-compose.yml` file, for example:
 
      ```yaml
+     name: autumoodle
+
      services:
        autumoodle:
          build:

@@ -1,3 +1,5 @@
+name: autumoodle
+
 services:
   autumoodle:
     build:
