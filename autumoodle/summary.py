@@ -1,7 +1,7 @@
 '''
 Author: Uyanide pywang0608@foxmail.com
 Date: 2025-11-03 13:03:19
-LastEditTime: 2025-11-04 22:46:02
+LastEditTime: 2025-11-05 18:31:44
 Description: Summary manager and Summary writer implementations
 '''
 
@@ -102,7 +102,7 @@ class _SummaryWriterCSV(SummaryWriter):
         if total == 0:
             return ret + " No files were updated."
         return ret + " Details: " + ", ".join(f"{status}: {count}" for status, count in counts.items()) + \
-            f"\nSummary file saved at: {self._file_path}"
+            f"\nSummary file has been saved to: {self._file_path}"
 
 
 class SummaryManager:

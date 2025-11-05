@@ -6,7 +6,7 @@ services:
       context: ..
       args:
         PUID: 1000
-        PGID: 27
+        PGID: 1000
     env_file:
       - .env
     container_name: autumoodle
