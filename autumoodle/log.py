@@ -1,7 +1,7 @@
 '''
 Author: Uyanide pywang0608@foxmail.com
 Date: 2025-10-26 21:59:22
-LastEditTime: 2025-11-04 23:47:06
+LastEditTime: 2025-11-05 13:59:27
 Description: A simple logger
 '''
 
@@ -12,7 +12,7 @@ import logging
 class DefaultFormatter(logging.Formatter):
     def format(self, record):
         if not hasattr(record, 'sender'):
-            record.sender = record.name
+            record.sender = record.name  # Fallback to logger name if sender is not provided
         return super().format(record)
 
 

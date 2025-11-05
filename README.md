@@ -80,18 +80,20 @@
        /path/to/AuTUMoodle/repository
      ```
 
-  2. Run the container, mapping the configuration file and necessary directories:
+  2. Run the container, mapping the configuration file and necessary directories, and passing in the credentials via environment variables:
 
      ```sh
-     docker run -a \
+     docker run \
        --name autumoodle \
        -v /path/to/local/config.json:/app/config.json:ro \
        -v /path/to/local/destination:/data \
        -v /path/to/local/cache:/cache \
-       -e TUM_USERNAME=your_username \
-       -e TUM_PASSWORD=your_password \
+       -e TUM_USERNAME="your_username" \
+       -e TUM_PASSWORD="your_password" \
        autumoodle:latest
      ```
+
+     Additionally, a `--rm` flag can be added to automatically remove the container after running, but in meanwhiles `docker start` can no longer be used for subsequent runs.
 
   3. Then each time you want to run the tool, execute:
 
@@ -99,13 +101,13 @@
      docker start -a autumoodle
      ```
 
-> [!NOTE]
->
-> `-a` flag in step 2 and 3 is used to attach the container's output to your terminal. If you want to run it in the background, you can omit this flag, and check the logs later using:
->
-> ```sh
-> docker logs autumoodle
-> ```
+     or
+
+     ```sh
+     docker run --rm ... # same as step 2
+     ```
+
+     case `--rm` flag is used.
 
 - Using `docker-compose` (recommended):
 
@@ -156,7 +158,7 @@
 
      if you are using an older version of Docker.
 
-     Optionally, you can add the `-d` flag to run the container in detached mode, or `--build` flag to force rebuild the image (useful when e.g. after editing source code).
+     Optionally, you can add the `-d` flag to run the container in detached mode, or `--build` flag to force rebuild the image (useful after editing source code).
 
   4. Then each time you want to run the tool, execute:
 
@@ -212,15 +214,7 @@
     pip install -r requirements.txt
     ```
 
-    - or manually:
-
-      - for logs:
-
-      ```sh
-      pip install loguru
-      ```
-
-      and depending on the session implementation you want to use:
+    - or manually, depending on the session implementation you want to use:
 
       - for `requests` (better performance, but may break in the future):
 
@@ -232,7 +226,7 @@
 
       ```sh
       pip install playwright
-      playwright install
+      playwright install firefox  # or chromium
       ```
 
 5.  Prepare the configuration files:
@@ -504,11 +498,11 @@ These two files can have whatever name you like and be placed wherever you want,
 
 > [!NOTE]
 >
-> Please make sure to download the corresponding browser binaries by running `playwright install` in your terminal after installing the `playwright` package if you are planning to use the `playwright` session implementation.
+> Please make sure to download the corresponding browser binaries by running `playwright install [browser_name]` in your terminal after installing the `playwright` package if you are planning to use the `playwright` session implementation.
 
 > [!WARNING]
 >
-> `playwright` session implementation is currently not supported when running inside a Docker container, as it not only requires browser binaries, but also depends on many additional system libraries that a normal `python-slim` based Docker image does not have. If you really need to use `playwright` inside Docker, you may try to build your own Docker image based on `mcr.microsoft.com/playwright` images.
+> `playwright` session implementation is currently not supported when running inside a Docker container, as it not only requires (huge) browser binaries, but also has a large amount of runtime dependencies that a normal `python-slim` based Docker image can not provide. If you really need to use `playwright` inside Docker, you may try to build and run your own Docker image based on `mcr.microsoft.com/playwright` or other similar images.
 
 - `playwright` (optional, only used when `session_type` is `playwright`)
 
@@ -524,7 +518,7 @@ These two files can have whatever name you like and be placed wherever you want,
 
 - `session` (optional)
 
-  additional configurations for the session manager, works for both `requests` and `playwright` session types.
+  additional configurations for the session manager, works for both `requests` and `playwright` session implementations.
 
   - `save` (optional, default: `false`)
 

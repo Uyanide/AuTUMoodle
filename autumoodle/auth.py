@@ -1,7 +1,7 @@
 '''
 Author: Uyanide pywang0608@foxmail.com
 Date: 2025-10-29 10:07:02
-LastEditTime: 2025-10-31 13:54:07
+LastEditTime: 2025-11-05 13:58:45
 Description: Authentication helper for "requests" session implementation
 '''
 
@@ -149,7 +149,7 @@ async def auth(client: httpx.AsyncClient, username: str, password: str) -> None:
     if not str(response.url).startswith(SUCCESS_URL):
         Logger.w("Authentication", f"Unexpected final URL: {response.url}, login may have failed")
     else:
-        Logger.i("Authentication", "Authentication successful!")
+        Logger.i("Authentication", "Authentication was successful!")
 
 
 if __name__ == "__main__":
