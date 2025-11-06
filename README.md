@@ -60,16 +60,24 @@
    - `destination_base`: `/data` (the directory inside the container where downloaded files will be saved to)
    - `cache_dir`: `/cache` (the directory inside the container where cached files will be stored)
 
-   If you are planning to use the `playwright` session implementation (e.g. when the `requests` implementation fails to log in properly), please also make sure to set:
+   If you are planning to use the `playwright` session implementation (e.g. when the `requests` implementation fails to log in some day in the future), set:
 
-   - `session_type`: `playwright`
-   - `playwright.headless`: `true` (the browser should obviously always run in headless mode inside the container)
+   ```json
+   {
+     ...
+     "session_type": "playwright",
+     "playwright": {
+       "headless": true
+     },
+     ...
+   }
+   ```
 
    Please also keep in mind that all the absolute paths in the config file should refer to paths inside the container (i.e. starting with `/data` or `/cache`), not paths on the host machine (e.g. `/home/ACoolGuy/Documents/Uni`).
 
-> For detailed information about the configuration file, please refer to the [Config](#config) section.
+   > For detailed information about the configuration file, please refer to the [Config](#config) section.
 
-1.  Run the Docker container:
+4. Run the Docker container:
 
 - Using `docker run`:
 
@@ -82,6 +90,12 @@
        -t autumoodle:latest \
        /path/to/AuTUMoodle/repository
      ```
+
+     explained:
+
+     - `PUID` and `PGID` build arguments are used to set the user and group id inside the container to match those of the host user, so that files created by the container will have the correct ownership on the host machine.
+     - `-t autumoodle:latest` tags the built image with the name `autumoodle` and tag `latest`.
+     - `/path/to/AuTUMoodle/repository` should be replaced with the actual path to the cloned/extracted AuTUMoodle repository on your machine.
 
   2. Run the container, mapping the configuration file and necessary directories, and passing in the credentials via environment variables:
 
@@ -96,7 +110,16 @@
        autumoodle:latest
      ```
 
-     Additionally, a `--rm` flag can be added to automatically remove the container after running, but in meanwhiles `docker start` can no longer be used for subsequent runs.
+     explained:
+
+     - `--name autumoodle` names the container `autumoodle` for easier reference in subsequent runs.
+     - `-v /path/to/local/config.json:/app/config.json:ro` maps the local configuration file to the container's expected location, in read-only mode.
+     - `-v /path/to/local/destination:/data` maps the local directory where downloaded files will be saved to the container's `/data` directory. e.g. `/home/ACoolGuy/Documents/Uni`.
+     - `-v /path/to/local/cache:/cache` maps the local directory for cached files to the container's `/cache` directory. e.g. `/home/ACoolGuy/.cache/autumoodle`.
+     - `-e TUM_USERNAME="your_username"` and `-e TUM_PASSWORD="your_password"` set the TUM Moodle login credentials as environment variables inside the container.
+     - `autumoodle:latest` specifies the image to run.
+
+     Additionally, a `--rm` flag can be added to automatically remove the container after running, but in this case `docker start` in step 3 can no longer be used for subsequent runs.
 
   3. Then each time you want to run the tool, execute:
 
@@ -104,7 +127,7 @@
      docker start -a autumoodle
      ```
 
-     or
+     where the `-a` flag is used to attach the container's output to your terminal. Or
 
      ```sh
      docker run --rm ... # same as step 2
@@ -161,15 +184,15 @@
 
      if you are using an older version of Docker.
 
-     Optionally, you can add the `-d` flag to run the container in detached mode, or `--build` flag to force rebuild the image (useful after editing source code).
+     Additionally, a `-d` flag can be added to run the container in detached mode, `--build` flag to force rebuild the image (useful after editing source code).
 
   4. Then each time you want to run the tool, execute:
 
      ```sh
-     docker start autumoodle
+     docker start -a autumoodle
      ```
 
-     Additionally, a `-a` flag can be added to attach the container's output to your terminal.
+     where the `-a` flag is used to attach the container's output to your terminal.
 
 ### Directly via Python
 
