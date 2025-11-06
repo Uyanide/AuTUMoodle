@@ -1,7 +1,7 @@
 '''
 Author: Uyanide pywang0608@foxmail.com
 Date: 2025-10-29 22:08:19
-LastEditTime: 2025-11-05 12:45:57
+LastEditTime: 2025-11-06 10:33:56
 Description: Main logic for downloading courses based on configuration
 '''
 
@@ -256,10 +256,10 @@ class TUMMoodleDownloader():
     _summary_writer: SummaryWriter | None
     _additional_matchers: list[PatternMatcher]
 
-    def __init__(self, config: Config, additional_matchers: list[PatternMatcher]):
+    def __init__(self, config: Config, additional_matchers: list[PatternMatcher] | None = None):
         self._config = config
         self._summary_writer = None
-        self._additional_matchers = additional_matchers
+        self._additional_matchers = additional_matchers if additional_matchers else []
 
     def _check_additional_matchers(self, course_title: str) -> bool:
         # if not provided, always match
@@ -309,7 +309,7 @@ class TUMMoodleDownloader():
 
     # Do magic ╰( ͡° ͜ʖ ͡° )つ──☆*:・ﾟ
     async def do_magic(self):
-        async with TUMMoodleSessionBuilder(self._config) as self._session:  # type: ignore
+        async with TUMMoodleSessionBuilder(self._config) as self._session:
             if self._config.summary_enabled:
                 with SummaryManager(
                     self._config.summary_expire_days,
@@ -319,5 +319,6 @@ class TUMMoodleDownloader():
                     courses = await self._session.get_courses(False)
                     await asyncio.gather(*[self._proc_course(course) for course in courses])
             else:
+                self._summary_writer = None
                 courses = await self._session.get_courses(False)
                 await asyncio.gather(*[self._proc_course(course) for course in courses])

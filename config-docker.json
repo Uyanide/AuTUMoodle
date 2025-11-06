@@ -10,6 +10,10 @@
     "session": {
         "save": true
     },
+    "playwright": {
+        "browser": "chromium",
+        "headless": true
+    },
     "log_level": "INFO",
     "ignored_files": [
         {

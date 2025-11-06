@@ -17,8 +17,6 @@ RUN groupadd -f -g ${PGID:-1000} appuser || true && \
     useradd -r -m -u ${PUID:-1000} -g ${PGID:-1000} appuser 2>/dev/null || \
     useradd -r -m -u ${PUID:-1000} -g appuser appuser && \
     chown -R appuser:appuser /app
-RUN pip install --no-cache-dir -r requirements-docker.txt
-USER appuser
+# RUN pip install --no-cache-dir -r requirements-docker.txt
 
-
-ENTRYPOINT [ "/usr/bin/tini", "--", "python3", "-m", "autumoodle" ]
+ENTRYPOINT [ "tini", "--", "/app/entry.sh", "/app/config.json", "appuser" ]

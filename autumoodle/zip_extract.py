@@ -1,8 +1,8 @@
 '''
 Author: Uyanide pywang0608@foxmail.com
 Date: 2025-10-29 22:08:19
-LastEditTime: 2025-11-03 13:26:26
-Description: Functions to extract files from zip archives based on configuration
+LastEditTime: 2025-11-06 10:21:01
+Description: Extract files from zip archives based on configuration
 '''
 
 from dataclasses import dataclass
@@ -11,6 +11,7 @@ from pathlib import Path
 import shutil
 import os
 from zipfile import ZipFile
+from functools import partial
 
 from .config_mgr import UpdateType, FileConfig
 from .utils import create_temp_dir, PatternMatcher
@@ -67,6 +68,54 @@ def _find_latest_modification_time(target: Path):
         if file_time > newest_time:
             newest_time = file_time
     return newest_time
+
+
+def _summary_entry(course_name: str, category_name: str, entry_name: str, file_name: str, stored_path: str, status: str, detail: str = "") -> SummaryEntry:
+    return SummaryEntry(
+        stored_path=stored_path,
+        course_name=course_name,
+        category_name=category_name,
+        entry_name=entry_name,
+        file_name=file_name,
+        status=status,
+        detail=detail
+    )
+
+
+def _extract_overwrite(destination: Path, entry_func, extract_func):
+    extract_func(dest=destination)
+    return entry_func(
+        file_name=destination.name,
+        stored_path=str(destination),
+        status="overwritten" if destination.exists() else "added",
+    )
+
+
+def _extract_skip(destination: Path, entry_func, extract_func):
+    if destination.exists():
+        return None
+    extract_func(dest=destination)
+    return entry_func(
+        file_name=destination.name,
+        stored_path=str(destination),
+        status="added",
+    )
+
+
+def _extract_rename(destination: Path, entry_func, extract_func):
+    final_path = Path(destination)
+    counter = 1
+    while final_path.exists():
+        final_path = destination.with_name(
+            f"{destination.stem}_{counter}{destination.suffix}")
+        counter += 1
+    extract_func(dest=final_path)
+    return entry_func(
+        file_name=final_path.name,
+        stored_path=str(final_path),
+        status="renamed" if counter > 1 else "added",
+        detail=f"renamed from {destination.name}" if counter > 1 else ""
+    )
 
 
 def extract_files(zip_path: Path,
@@ -138,57 +187,25 @@ def extract_files(zip_path: Path,
                 if local_date >= zip_mtime:
                     continue
 
+                summary_entry_func = partial(_summary_entry, course_name=course_name,
+                                             category_name=category_name, entry_name=entry_name)
+                extract_func = partial(_copy_with_timestamp, src=temp_path, timestamp=zip_mtime)
+                process_func = None
+
                 if update_type == UpdateType.OVERWRITE:
-                    _copy_with_timestamp(temp_path, destination_path, zip_mtime)
-                    if summary_writer:
-                        summary_writer.add_entry(
-                            SummaryEntry(
-                                stored_path=str(destination_path),
-                                course_name=course_name,
-                                category_name=category_name,
-                                entry_name=entry_name,
-                                file_name=destination_path.name,
-                                status="overwritten" if local_date > 0 else "added",
-                                detail=""
-                            )
-                        )
+                    process_func = _extract_overwrite
                 elif update_type == UpdateType.RENAME:
-                    final_path = Path(destination_path)
-                    counter = 1
-                    while final_path.exists():
-                        final_path = destination_path.with_name(
-                            f"{destination_path.stem}_{counter}{destination_path.suffix}")
-                        counter += 1
-                    _copy_with_timestamp(temp_path, final_path, zip_mtime)
-                    if summary_writer:
-                        summary_writer.add_entry(
-                            SummaryEntry(
-                                stored_path=str(final_path),
-                                course_name=course_name,
-                                category_name=category_name,
-                                entry_name=entry_name,
-                                file_name=final_path.name,
-                                status="renamed" if local_date > 0 else "added",
-                                detail=f"renamed from {destination_path.name}" if local_date > 0 else ""
-                            )
-                        )
+                    process_func = _extract_rename
                 elif update_type == UpdateType.SKIP:
-                    if destination_path.exists():
-                        continue
-                    _copy_with_timestamp(temp_path, destination_path, zip_mtime)
-                    if summary_writer:
-                        summary_writer.add_entry(
-                            SummaryEntry(
-                                stored_path=str(destination_path),
-                                course_name=course_name,
-                                category_name=category_name,
-                                entry_name=entry_name,
-                                file_name=destination_path.name,
-                                status="added",
-                                detail=""
-                            )
-                        )
+                    process_func = _extract_skip
                 else:
                     raise ValueError(f"Unknown update type: {update_type}")
+
+                if process_func:
+                    entry = process_func(destination=destination_path,
+                                         entry_func=summary_entry_func,
+                                         extract_func=extract_func)
+                    if entry and summary_writer:
+                        summary_writer.add_entry(entry)
     finally:
         shutil.rmtree(temp_dir)

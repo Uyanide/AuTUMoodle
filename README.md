@@ -51,7 +51,6 @@
    {
      "destination_base": "/data",
      "cache_dir": "/cache",
-     "session_type": "requests",
      "courses": []
    }
    ```
@@ -60,13 +59,17 @@
 
    - `destination_base`: `/data` (the directory inside the container where downloaded files will be saved to)
    - `cache_dir`: `/cache` (the directory inside the container where cached files will be stored)
-   - `session_type`: `requests` (`playwright` is currently not supported, see [Config](#config) for details)
+
+   If you are planning to use the `playwright` session implementation (e.g. when the `requests` implementation fails to log in properly), please also make sure to set:
+
+   - `session_type`: `playwright`
+   - `playwright.headless`: `true` (the browser should obviously always run in headless mode inside the container)
 
    Please also keep in mind that all the absolute paths in the config file should refer to paths inside the container (i.e. starting with `/data` or `/cache`), not paths on the host machine (e.g. `/home/ACoolGuy/Documents/Uni`).
 
 > For detailed information about the configuration file, please refer to the [Config](#config) section.
 
-4.  Run the Docker container:
+1.  Run the Docker container:
 
 - Using `docker run`:
 
@@ -520,17 +523,13 @@ Detailed explanation of each field:
 >
 > Please make sure to download the corresponding browser binaries by running `playwright install [browser_name]` in your terminal after installing the `playwright` package if you are planning to use the `playwright` session implementation.
 
-> [!WARNING]
->
-> `playwright` session implementation is currently not supported when running inside a Docker container, as it not only requires (huge) browser binaries, but also has a large amount of runtime dependencies that a normal `python-slim` based Docker image can not provide. If you really need to use `playwright` inside Docker, you may try to build and run your own Docker image based on `mcr.microsoft.com/playwright` or other similar images.
-
 - `playwright` (optional, only used when `session_type` is `playwright`)
 
   additional configurations for the Playwright session.
 
-  - `browser` (optional, default: `firefox`)
+  - `browser` (optional, default: `chromium`)
 
-    the browser to use. Possible values are: `chromium`, `firefox`.
+    the browser to use. Please refer to the [Playwright documentation](https://playwright.dev/python/docs/browsers) for details.
 
   - `headless` (optional, default: `true`)
 
