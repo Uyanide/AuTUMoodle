@@ -1,5 +1,12 @@
 #!/bin/sh
 
+###
+ # @Author: Uyanide pywang0608@foxmail.com
+ # @Date: 2025-11-04 18:10:34
+ # @LastEditTime: 2025-11-06 14:48:49
+ # @Description: Entry point script that sets up the environment and runs the application.
+###
+
 # Check envs
 
 [ -z "$TUM_USERNAME" ] && {
@@ -64,12 +71,16 @@ ARGS="$*"
 if [ "$SESSION_TYPE" = "playwright" ]; then
     BROWSER=$(jq -r '.playwright.browser // "chromium-headless-shell"' "$CONFIG_PATH")
 
+    # Install browser binary as the target user
+
     su - "${USER}" -c "(
         playwright install $BROWSER --only-shell
     )" || {
         echo "Error: Playwright browser installation failed." >&2
         exit 1
     }
+
+    # Install dependencies as root
 
     playwright install-deps $BROWSER || {
         echo "Error: Playwright dependencies installation failed." >&2

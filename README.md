@@ -6,6 +6,7 @@
 
 - [AuTUMoodle](#autumoodle)
   - [Contents](#contents)
+  - [Features](#features)
   - [How to Use](#how-to-use)
     - [Via Docker](#via-docker)
     - [Directly via Python](#directly-via-python)
@@ -16,6 +17,20 @@
     - [credentials.json](#credentialsjson)
   - [Pattern Matching](#pattern-matching)
   - [Updating Methods](#updating-methods)
+  - [Session Implementations](#session-implementations)
+
+## Features
+
+- Automatic authentication via TUM Shibboleth SSO.
+- Download course materials from TUM Moodle's "Download Center".
+- Configurable rules to select which courses, categories, entries to download.
+- Configurable updating methods for existing files.
+- Configurable organization of downloaded files into directories.
+- Summary report generation after each download session.
+- Multiple session implementations (`requests` and `playwright`) to handle potential login issues.
+- Asynchronous implementation for better performance.
+- Docker support for easy deployment.
+- Tested on both GNU/Linux and Windows systems.
 
 ## How to Use
 
@@ -140,7 +155,7 @@
   1. Create a `compose.yaml` or `docker-compose.yaml` file, for example:
 
      ```yaml
-     name: autumoodle # project name
+     name: autumoodle # project name, default to be the directory name
 
      services:
        autumoodle:
@@ -536,15 +551,10 @@ Detailed explanation of each field:
 
   implementation of the session to use when logging and retrieving files from Moodle. Possible values are:
 
-  - `requests`: uses the [httpx](https://www.python-httpx.org/) library to make HTTP requests. Lightweight, fast, but may soon break if the procedure of Shibboleth SSO login used by TUM Moodle changes some day (like many other similar tools out there).
+  - `requests`
+  - `playwright`
 
-  - `playwright`: uses the [Playwright](https://playwright.dev/) library to automate browser interactions. Although it can be used to bypass the complicated (manual) Shibboleth SSO logins, it remains to be a rather "heavy" solution since this literally runs a browser (firefox by default) in the background.
-
-  Both implementations are using asynchronous APIs under the hood, so the performance difference in practice may not be that significant.
-
-> [!NOTE]
->
-> Please make sure to download the corresponding browser binaries by running `playwright install [browser_name]` in your terminal after installing the `playwright` package if you are planning to use the `playwright` session implementation.
+  Please refer to the [Session Implementations](#session-implementations) section for details.
 
 - `playwright` (optional, only used when `session_type` is `playwright`)
 
@@ -617,3 +627,15 @@ When a file to be downloaded already exists in the destination directory, and th
 - `skip`: do not download the file again, keep the existing one.
 - `overwrite`: overwrite the existing file with the new one.
 - `rename`: download the new file and rename it by appending numbered suffixes, e.g. `file.pdf` -> `file_1.pdf`, `file_2.pdf`, etc.
+
+## Session Implementations
+
+- `requests`: uses the [httpx](https://www.python-httpx.org/) library to make HTTP requests. Lightweight, fast, but may soon break if the procedure of Shibboleth SSO login used by TUM Moodle changes some day (like many other similar tools out there).
+
+- `playwright`: uses the [Playwright](https://playwright.dev/) library to automate browser interactions. Although it can be used to bypass the complicated (manual) Shibboleth SSO logins, it remains to be a rather "heavy" solution since this literally runs a browser (firefox by default) in the background.
+
+Both implementations are using asynchronous APIs, so the performance difference in practice may not be that significant taking the network latency into account.
+
+> [!NOTE]
+>
+> Please make sure to download the corresponding browser binaries by running `playwright install [browser_name]` and `playwright install-deps [browser_name]` in your terminal after installing the `playwright` package if you are planning to use the `playwright` session implementation.

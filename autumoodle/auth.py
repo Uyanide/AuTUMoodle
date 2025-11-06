@@ -1,7 +1,7 @@
 '''
 Author: Uyanide pywang0608@foxmail.com
 Date: 2025-10-29 10:07:02
-LastEditTime: 2025-11-05 13:58:45
+LastEditTime: 2025-11-06 15:25:46
 Description: Authentication helper for "requests" session implementation
 '''
 
@@ -23,40 +23,10 @@ def format_idp_url(relative_url: str) -> str:
 
 
 async def auth(client: httpx.AsyncClient, username: str, password: str) -> None:
-    Logger.d("Authentication", "Fetching SAML request URL...")
-    response = await client.get(AUTH_URL,
-                                headers=request_helper.GENERAL_HEADERS,
-                                follow_redirects=False)
-    Logger.d("Authentication", f"Received response: {response.status_code}")
-
-    if response.status_code != 302:
-        raise RuntimeError(f"Unexpected status code: {response.status_code}")
-
-    saml_request_url = response.headers.get('Location')
-    if not saml_request_url:
-        raise RuntimeError("No Location header found in the response")
-    Logger.d("Authentication", f"SAML Request URL: {saml_request_url}")
-
-    Logger.d("Authentication", "Fetching SAML request page...")
-    response = await client.get(saml_request_url,
-                                headers=request_helper.GENERAL_HEADERS,
-                                follow_redirects=False)
-    Logger.d("Authentication", f"Received response: {response.status_code}")
-
-    if response.status_code != 302:
-        raise RuntimeError(f"Unexpected status code: {response.status_code}")
-
-    sso_relative_url = response.headers.get('Location')
-    if not sso_relative_url:
-        raise RuntimeError("No Location header found in the response")
-    sso_url = format_idp_url(sso_relative_url)
-    Logger.d("Authentication", f"SSO URL: {sso_url}")
-
-    Logger.d("Authentication", "Fetching SSO page...")
-    response = await client.get(sso_url, headers={
+    Logger.d("Authentication", "Starting authentication process...")
+    response = await client.get(AUTH_URL, headers={
         **request_helper.GENERAL_HEADERS,
         **request_helper.ADDITIONAL_HEADERS,
-        "Referer": sso_url,
     }, follow_redirects=True)
     Logger.d("Authentication", f"Received response: {response.status_code}")
 
@@ -74,11 +44,9 @@ async def auth(client: httpx.AsyncClient, username: str, password: str) -> None:
     response = await client.post(action_url, data=parser.encode_inputs(), headers={  # type: ignore
         **request_helper.GENERAL_HEADERS,
         **request_helper.ADDITIONAL_HEADERS,
-        "Referer": sso_url,
+        "Referer": action_url,
     }, follow_redirects=True)
     Logger.d("Authentication", f"Received response: {response.status_code}")
-    # print(response.text)
-    # return
 
     parser = request_helper.FormParser(response.text)
     action_url = format_idp_url(parser.action_url)
