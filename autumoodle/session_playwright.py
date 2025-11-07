@@ -1,7 +1,7 @@
 '''
 Author: Uyanide pywang0608@foxmail.com
 Date: 2025-10-26 21:59:22
-LastEditTime: 2025-11-04 23:34:40
+LastEditTime: 2025-11-06 23:40:54
 Description: Playwright-based Moodle session implementation
 '''
 
@@ -93,17 +93,17 @@ class TUMMoodleSession(intf.TUMMoodleSession):
             try:
                 self._context = await self._browser.new_context(storage_state=str(self._storage_state_path))
             except Exception as e:
-                Logger.w("TUMMoodleSession", f"Failed to load storage state: {e}, starting with a fresh context.")
+                Logger.w("TUMMoodleSession", f"Failed to load storage state: {e}, starting with a fresh context")
                 self._context = await self._browser.new_context()
         else:
             self._context = await self._browser.new_context()
 
-        Logger.d("TUMMoodleSession", "Browser has been launched.")
+        Logger.d("TUMMoodleSession", "Browser has been launched")
         try:
             Logger.d("TUMMoodleSession", "Attempting the first login...")
             page = await self._create_page(COURSES_PAGE_URL(False))
             await page.close()
-            Logger.d("TUMMoodleSession", "Initial login attempt finished.")
+            Logger.d("TUMMoodleSession", "Initial login attempt finished")
         except Exception as e:
             Logger.e("TUMMoodleSession", f"Failed to open Moodle main page: {e}")
         return self
@@ -115,7 +115,7 @@ class TUMMoodleSession(intf.TUMMoodleSession):
         await self._context.close()
         await self._browser.close()
         await self._async_playwright.stop()
-        Logger.d("TUMMoodleSession", "Browser has been closed.")
+        Logger.d("TUMMoodleSession", "Browser has been closed")
 
     async def _save_storage_state(self):
         '''Save current browser context storage (cookies/localStorage) to file.'''
@@ -166,14 +166,14 @@ class TUMMoodleSession(intf.TUMMoodleSession):
             except Exception as e:
                 Logger.e("TUMMoodleSession", f"Failed to login via Moodle main page: {e}")
                 return False
-        Logger.d("TUMMoodleSession", "Not a recognized login page, assuming already logged in.")
+        Logger.d("TUMMoodleSession", "Not a recognized login page, assuming already logged in")
         return True
 
     async def _login(self, page: Page) -> bool:
         '''Perform login on the TUM login page and wait until redirected back to Moodle.'''
         Logger.d("TUMMoodleSession", f"Attempting login on page: {page.url}")
         if not page.url.startswith(TUM_LOGIN_URL()):
-            Logger.d("TUMMoodleSession", "Not on TUM login page, login aborted.")
+            Logger.d("TUMMoodleSession", "Not on TUM login page, login aborted")
             return False
         try:
             Logger.d("TUMMoodleSession", "Filling in login credentials...")
@@ -204,7 +204,7 @@ class TUMMoodleSession(intf.TUMMoodleSession):
                 link = links.nth(i)
                 title = await link.get_attribute("title")
                 if not title:
-                    Logger.d("TUMMoodleSession", f"Skipping course with missing title.")
+                    Logger.d("TUMMoodleSession", f"Skipping course with missing title")
                     continue
                 href = await link.get_attribute("href")
                 if not href or href.find("id=") == -1:
@@ -224,7 +224,7 @@ class TUMMoodleSession(intf.TUMMoodleSession):
                 )
                 Logger.d("TUMMoodleSession", f"Found course: {course}")
                 courses.append(course)
-            Logger.d("TUMMoodleSession", f"Total courses retrieved: {len(courses)}.")
+            Logger.d("TUMMoodleSession", f"Total courses retrieved: {len(courses)}")
             return courses
         except Exception as e:
             Logger.e("TUMMoodleSession", f"Failed to retrieve courses: {e}")
@@ -265,7 +265,7 @@ class TUMMoodleSession(intf.TUMMoodleSession):
         count = await items.count()
         # The first div should be the section title
         if count <= 1:
-            Logger.d("TUMMoodleSession", f"No resources found in card '{title}'.")
+            Logger.d("TUMMoodleSession", f"No resources found in card '{title}'")
             return entries
         for j in range(1, count):
             item = items.nth(j)
@@ -275,14 +275,14 @@ class TUMMoodleSession(intf.TUMMoodleSession):
                 Logger.d("TUMMoodleSession", f"Found resource: {entry.title} (ID: {entry.id})")
                 entries.append(entry)
             else:
-                Logger.d("TUMMoodleSession", f"Failed to parse resource item at index {item_idx} in card '{title}'.")
+                Logger.d("TUMMoodleSession", f"Failed to parse resource item at index {item_idx} in card '{title}'")
         return entries
 
     async def _perform_download(self, categories: list[CategoryInfo], page: Page) -> Download | None:
         '''Perform the download of selected resources and save to the specified path.'''
         to_check = [item._input for category in categories for item in category.entries]  # pyright: ignore[reportAttributeAccessIssue]
         if len(to_check) == 0:
-            Logger.d("TUMMoodleSession", f"No resources selected for download after filtering.")
+            Logger.d("TUMMoodleSession", f"No resources selected for download after filtering")
             return None
         Logger.d("TUMMoodleSession", f"Selecting {len(to_check)} resources for download...")
         for input_elem in to_check:
@@ -308,20 +308,20 @@ class TUMMoodleSession(intf.TUMMoodleSession):
             # Find all download cards
             download_cards = page.locator('div.card', has=page.locator('span.sectiontitle'))
             count = await download_cards.count()
-            Logger.d("TUMMoodleSession", f"Found {count} cards.")
+            Logger.d("TUMMoodleSession", f"Found {count} cards")
             categories: list[CategoryInfo] = []
             for i in range(count):
                 card = download_cards.nth(i)
                 card_title = (await (card.locator('span.sectiontitle').inner_text())).strip()
                 entries = await self._parse_categorie(card)
                 if entries:
-                    Logger.d("TUMMoodleSession", f"Adding {len(entries)} resources under '{card_title}'.")
+                    Logger.d("TUMMoodleSession", f"Adding {len(entries)} resources under '{card_title}'")
                     categories.append(CategoryInfo(
                         title=card_title,
                         entries=entries  # pyright: ignore[reportArgumentType]
                     ))
                 else:
-                    Logger.d("TUMMoodleSession", f"Failed to parse resources in card '{card_title}'.")
+                    Logger.d("TUMMoodleSession", f"Failed to parse resources in card '{card_title}'")
 
             Logger.d("TUMMoodleSession", f"Total categories parsed: {len(categories)}.")
             filtered_categories = filter(categories)
@@ -332,7 +332,7 @@ class TUMMoodleSession(intf.TUMMoodleSession):
                 Logger.d("TUMMoodleSession", f"Downloaded archive will be saved to: {save_path}")
                 await download.save_as(str(save_path))
             else:
-                Logger.w("TUMMoodleSession", f"No archive was downloaded for course {course_id}.")
+                Logger.w("TUMMoodleSession", f"No archive was downloaded for course {course_id}")
 
         except Exception as e:
             Logger.e("TUMMoodleSession", f"Failed to download archive for course {course_id}: {e}")

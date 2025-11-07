@@ -1,21 +1,31 @@
 '''
 Author: Uyanide pywang0608@foxmail.com
 Date: 2025-10-29 09:57:27
-LastEditTime: 2025-10-31 13:53:35
+LastEditTime: 2025-11-06 23:30:58
 Description: Helpers for "requests" session implementation
 '''
 
 from bs4 import BeautifulSoup
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse, urljoin
 
 GENERAL_HEADERS = {
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
 }
 
-ADDITIONAL_HEADERS = {
+FORM_HEADERS = {
     "Content-Type": "application/x-www-form-urlencoded",
 }
+
+
+def join_relative_url(url: str, relative: str) -> str:
+    # Case already absolute URL
+    if relative.startswith("http://") or relative.startswith("https://"):
+        return relative
+    # Join with base URL
+    parsed_url = urlparse(url)
+    base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
+    return urljoin(base_url, relative)
 
 
 class FormParser:

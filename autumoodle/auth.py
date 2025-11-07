@@ -1,7 +1,7 @@
 '''
 Author: Uyanide pywang0608@foxmail.com
 Date: 2025-10-29 10:07:02
-LastEditTime: 2025-11-06 15:25:46
+LastEditTime: 2025-11-06 23:38:39
 Description: Authentication helper for "requests" session implementation
 '''
 
@@ -12,26 +12,22 @@ from . import request_helper
 
 
 AUTH_URL = "https://www.moodle.tum.de/Shibboleth.sso/Login?providerId=https://tumidp.lrz.de/idp/shibboleth&target=https://www.moodle.tum.de/auth/shibboleth/index.php"
-IDP_BASE_URL = "https://login.tum.de"
 SUCCESS_URL = "https://www.moodle.tum.de/my"
-
-
-def format_idp_url(relative_url: str) -> str:
-    if relative_url.startswith("http"):
-        return relative_url
-    return f"{IDP_BASE_URL}{relative_url}"
 
 
 async def auth(client: httpx.AsyncClient, username: str, password: str) -> None:
     Logger.d("Authentication", "Starting authentication process...")
     response = await client.get(AUTH_URL, headers={
         **request_helper.GENERAL_HEADERS,
-        **request_helper.ADDITIONAL_HEADERS,
     }, follow_redirects=True)
     Logger.d("Authentication", f"Received response: {response.status_code}")
 
+    if response.url == SUCCESS_URL:
+        Logger.i("Authentication", "Already logged in")
+        return
+
     parser = request_helper.FormParser(response.text)
-    action_url = format_idp_url(parser.action_url)
+    action_url = request_helper.join_relative_url(str(response.url), parser.action_url)
     parser.ensure_have_inputs({
         'csrf_token',
         'shib_idp_ls_supported',
@@ -43,13 +39,13 @@ async def auth(client: httpx.AsyncClient, username: str, password: str) -> None:
     Logger.d("Authentication", "Submitting intermediate form...")
     response = await client.post(action_url, data=parser.encode_inputs(), headers={  # type: ignore
         **request_helper.GENERAL_HEADERS,
-        **request_helper.ADDITIONAL_HEADERS,
+        **request_helper.FORM_HEADERS,
         "Referer": action_url,
     }, follow_redirects=True)
     Logger.d("Authentication", f"Received response: {response.status_code}")
 
     parser = request_helper.FormParser(response.text)
-    action_url = format_idp_url(parser.action_url)
+    action_url = request_helper.join_relative_url(str(response.url), parser.action_url)
     parser.ensure_have_inputs({
         'csrf_token',
         'j_username',
@@ -66,13 +62,13 @@ async def auth(client: httpx.AsyncClient, username: str, password: str) -> None:
     Logger.d("Authentication", "Submitting credentials form...")
     response = await client.post(action_url, data=parser.encode_inputs(), headers={  # type: ignore
         **request_helper.GENERAL_HEADERS,
-        **request_helper.ADDITIONAL_HEADERS,
+        **request_helper.FORM_HEADERS,
         "Referer": action_url,
     }, follow_redirects=True)
     Logger.d("Authentication", f"Received response: {response.status_code}")
 
     parser = request_helper.FormParser(response.text)
-    action_url = format_idp_url(parser.action_url)
+    action_url = request_helper.join_relative_url(str(response.url), parser.action_url)
 
     if parser.do_have_input('j_username'):
         raise RuntimeError("Authentication failed: possibly wrong username or password")
@@ -92,12 +88,12 @@ async def auth(client: httpx.AsyncClient, username: str, password: str) -> None:
         })
         response = await client.post(action_url, data=parser.encode_inputs(), headers={  # type: ignore
             **request_helper.GENERAL_HEADERS,
-            **request_helper.ADDITIONAL_HEADERS,
+            **request_helper.FORM_HEADERS,
             "Referer": action_url,
         }, follow_redirects=True)
         Logger.d("Authentication", f"Received response: {response.status_code}")
         parser = request_helper.FormParser(response.text)
-        action_url = format_idp_url(parser.action_url)
+        action_url = request_helper.join_relative_url(str(response.url), parser.action_url)
 
     parser.ensure_have_inputs({
         'SAMLResponse',
@@ -107,7 +103,7 @@ async def auth(client: httpx.AsyncClient, username: str, password: str) -> None:
     Logger.d("Authentication", "Submitting SAML response form...")
     response = await client.post(action_url, data=parser.encode_inputs(), headers={  # type: ignore
         **request_helper.GENERAL_HEADERS,
-        **request_helper.ADDITIONAL_HEADERS,
+        **request_helper.FORM_HEADERS,
         "Referer": action_url,
     }, follow_redirects=True)
     Logger.d("Authentication", f"Received response: {response.status_code}")
@@ -126,5 +122,5 @@ if __name__ == "__main__":
     async def main():
         transport = httpx.AsyncHTTPTransport(retries=2)
         async with httpx.AsyncClient(timeout=30.0, transport=transport) as client:
-            await auth(client, "abcdedg", "NeverGonnaGiveYouUp")
+            await auth(client, "ab12cde", "NeverGonnaGiveYouUp123!")
     asyncio.run(main())

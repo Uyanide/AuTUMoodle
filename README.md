@@ -2,9 +2,76 @@
 
 > stands for Auto - TUM - Moodle. I'm not that good at naming, I know...
 
+## Quick start
+
+> [!WARNING]
+>
+> The instructions in this section are highly simplified. For more proper and robust usage, please refer to the [How to Use](#how-to-use) section and [Config](#config) section.
+
+For Linux systems, run the following commands in a POSIX-compliant terminal (e.g. bash, zsh):
+
+```sh
+# Clone this repository
+git clone https://github.com/Uyanide/AuTUMoodle.git --depth 1
+cd AuTUMoodle
+
+# Prepare virtual environment
+python3 -m venv .venv
+source .venv/bin/activate  # Or other commands depending on your OS and shell
+
+# Install dependencies
+python3 -m pip install -r requirements-minimal.txt
+
+# Prepare a minimal config file (change semester accordingly)
+cat > config-minimal.json << EOF
+{
+  "courses": [
+    {
+      "pattern": ".*",
+      "match_type": "regex",
+      "semester": "WS25_26"
+    }
+  ]
+}
+EOF
+
+# Good to go!
+python3 -m autumoodle -c config-minimal.json
+```
+
+for Windows systems, run the following commands in PowerShell:
+
+```ps1
+# Clone this repository
+git clone https://github.com/Uyanide/AuTUMoodle.git --depth 1
+Set-Location AuTUMoodle
+
+# Install dependencies
+pip install -r requirements-minimal.txt
+
+# Prepare a minimal config file (change semester accordingly)
+@"{
+  "courses": [
+    {
+      "pattern": ".*",
+      "match_type": "regex",
+      "semester": "WS25_26"
+    }
+  ]
+}"@ | Out-File -Encoding utf8 config-minimal.json
+
+# Good to go!
+python -m autumoodle -c config-minimal.json
+```
+
+This will download all courses in the specified semester (here: winter semester 2025/2026) to the default location (`~/Documents/AuTUMoodle` on Linux, `C:\Users\YourUsername\Documents\AuTUMoodle` on Windows), organizing the downloaded files into sub-directories based on the course titles and categories as defined in Moodle.
+
+Prompts will appear to ask for your TUM Moodle credentials (username and password) after launching. If you don't want to enter them interactively every time, you can create a `credentials.json` file as explained in the [Config](#config) section.
+
 ## Contents
 
 - [AuTUMoodle](#autumoodle)
+  - [Quick start](#quick-start)
   - [Contents](#contents)
   - [Features](#features)
   - [How to Use](#how-to-use)
@@ -25,7 +92,7 @@
 - Download course materials from TUM Moodle's "Download Center".
 - Configurable rules to select which courses, categories, entries to download.
 - Configurable updating methods for existing files.
-- Configurable organization of downloaded files into directories.
+- Configurable organization of downloaded files.
 - Summary report generation after each download session.
 - Multiple session implementations (`requests` and `playwright`) to handle potential login issues.
 - Asynchronous implementation for better performance.
@@ -636,6 +703,6 @@ When a file to be downloaded already exists in the destination directory, and th
 
 Both implementations are using asynchronous APIs, so the performance difference in practice may not be that significant taking the network latency into account.
 
-> [!NOTE]
+> [!IMPORTANT]
 >
 > Please make sure to download the corresponding browser binaries by running `playwright install [browser_name]` and `playwright install-deps [browser_name]` in your terminal after installing the `playwright` package if you are planning to use the `playwright` session implementation.

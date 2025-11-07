@@ -1,7 +1,7 @@
 '''
 Author: Uyanide pywang0608@foxmail.com
 Date: 2025-10-29 22:08:19
-LastEditTime: 2025-11-06 10:33:56
+LastEditTime: 2025-11-06 20:44:01
 Description: Main logic for downloading courses based on configuration
 '''
 
@@ -309,7 +309,7 @@ class TUMMoodleDownloader():
 
     # Do magic ╰( ͡° ͜ʖ ͡° )つ──☆*:・ﾟ
     async def do_magic(self):
-        async with TUMMoodleSessionBuilder(self._config) as self._session:
+        async with TUMMoodleSessionBuilder(self._config) as self._session:  # type: ignore
             if self._config.summary_enabled:
                 with SummaryManager(
                     self._config.summary_expire_days,
@@ -317,8 +317,10 @@ class TUMMoodleDownloader():
                 ) as summary_writer:
                     self._summary_writer = summary_writer
                     courses = await self._session.get_courses(False)
+                    Logger.i("Downloader", f"Found {len(courses)} courses in total")
                     await asyncio.gather(*[self._proc_course(course) for course in courses])
             else:
                 self._summary_writer = None
                 courses = await self._session.get_courses(False)
+                Logger.i("Downloader", f"Found {len(courses)} courses in total")
                 await asyncio.gather(*[self._proc_course(course) for course in courses])

@@ -1,7 +1,7 @@
 '''
 Author: Uyanide pywang0608@foxmail.com
 Date: 2025-10-29 21:13:55
-LastEditTime: 2025-11-04 23:34:30
+LastEditTime: 2025-11-06 23:42:07
 Description: httpx(requests)-based Moodle session implementation
 '''
 
@@ -82,7 +82,7 @@ class TUMMoodleSession(intf.TUMMoodleSession):
             Logger.e("TUMMoodleSession", f"Failed to save session: {e}")
         Logger.d("TUMMoodleSession", "Closing session...")
         await self._client.aclose()
-        Logger.d("TUMMoodleSession", "Session closed.")
+        Logger.d("TUMMoodleSession", "Session closed.´")
 
     def _save_session(self):
         if self._storage_state_path:
@@ -96,7 +96,7 @@ class TUMMoodleSession(intf.TUMMoodleSession):
 
     def _load_session(self) -> bool:
         if not self._storage_state_path:
-            Logger.w("TUMMoodleSession", "No storage_state_path provided, cannot load session.")
+            Logger.w("TUMMoodleSession", "No storage_state_path provided, cannot load session")
             return False
         if not self._storage_state_path.exists():
             Logger.w("TUMMoodleSession", f"Session file not found: {self._storage_state_path}")
@@ -118,7 +118,7 @@ class TUMMoodleSession(intf.TUMMoodleSession):
         Logger.d("TUMMoodleSession", "Checking login status...")
         response = await self._client.get(COURSES_PAGE_URL(False), follow_redirects=False)
         if response.status_code == 200:
-            Logger.d("TUMMoodleSession", "Already logged in.")
+            Logger.d("TUMMoodleSession", "Already logged in")
             return
         Logger.d("TUMMoodleSession", "Not logged in, performing login...")
         await self._login()
@@ -142,7 +142,7 @@ class TUMMoodleSession(intf.TUMMoodleSession):
             for link in links:
                 title = link.get('title')
                 if not isinstance(title, str):
-                    Logger.d("TUMMoodleSession", f"Skipping course with missing title.")
+                    Logger.d("TUMMoodleSession", f"Skipping course with missing title")
                     continue
                 href = link.get('href')
                 if not isinstance(href, str) or href.find("id=") == -1:
@@ -162,7 +162,7 @@ class TUMMoodleSession(intf.TUMMoodleSession):
                 )
                 Logger.d("TUMMoodleSession", f"Found course: {course}")
                 courses.append(course)
-            Logger.d("TUMMoodleSession", f"Total courses retrieved: {len(courses)}.")
+            Logger.d("TUMMoodleSession", f"Total courses retrieved: {len(courses)}")
             return courses
         except Exception as e:
             Logger.e("TUMMoodleSession", f"Failed to retrieve courses: {e}")
@@ -194,7 +194,7 @@ class TUMMoodleSession(intf.TUMMoodleSession):
     def _parse_category(self, card: Tag) -> CategoryInfo | None:
         title_tags = card.select('span.sectiontitle')
         if not title_tags:
-            Logger.d("TUMMoodleSession", "No title tag found in resource card.")
+            Logger.d("TUMMoodleSession", "No title tag found in resource card")
             return None
         title = title_tags[0].get_text(strip=True)
         Logger.d("TUMMoodleSession", f"Processing card '{title}'...")
@@ -202,15 +202,15 @@ class TUMMoodleSession(intf.TUMMoodleSession):
         entries = []
         items = card.select('div.form-check')
         if len(items) <= 1:
-            Logger.d("TUMMoodleSession", f"No resources found in card '{title}'.")
+            Logger.d("TUMMoodleSession", f"No resources found in card '{title}'")
             return None
         category_input = items[0].select_one('input')
         if not category_input:
-            Logger.d("TUMMoodleSession", f"No category input found in card '{title}'.")
+            Logger.d("TUMMoodleSession", f"No category input found in card '{title}'")
             return None
         category_input_name = category_input.get('name')
         if not isinstance(category_input_name, str):
-            Logger.d("TUMMoodleSession", f"Invalid category input name in card '{title}'.")
+            Logger.d("TUMMoodleSession", f"Invalid category input name in card '{title}'")
             return None
         for item in items[1:]:  # skip the first one (select all)
             entry = self._parse_entry(item)
@@ -219,7 +219,7 @@ class TUMMoodleSession(intf.TUMMoodleSession):
                 entries.append(entry)
 
         if not entries:
-            Logger.d("TUMMoodleSession", f"No valid resources parsed in card '{title}'.")
+            Logger.d("TUMMoodleSession", f"No valid resources parsed in card '{title}'")
             return None
 
         return CategoryInfo(
@@ -271,12 +271,12 @@ class TUMMoodleSession(intf.TUMMoodleSession):
                 payload[entry._input_name] = '1'  # type: ignore
 
         if not have_entries:
-            Logger.d("TUMMoodleSession", "No entries selected for download.")
+            Logger.d("TUMMoodleSession", "No entries selected for download")
             return None
 
         response = self._client.stream('POST', action, data=payload, headers={
             **request_helper.GENERAL_HEADERS,
-            **request_helper.ADDITIONAL_HEADERS
+            **request_helper.FORM_HEADERS
         })
         async with response as download_response:
             if download_response.status_code != 200:
@@ -303,21 +303,21 @@ class TUMMoodleSession(intf.TUMMoodleSession):
             soup = BeautifulSoup(response.text, 'html.parser')
 
             download_cards = soup.select('div.card:has(span.sectiontitle)')
-            Logger.d("TUMMoodleSession", f"Found {len(download_cards)} cards.")
+            Logger.d("TUMMoodleSession", f"Found {len(download_cards)} cards")
             categories: list[CategoryInfo] = []
             for card in download_cards:
                 category = self._parse_category(card)
                 if category:
                     categories.append(category)
-            Logger.d("TUMMoodleSession", f"Total categories parsed: {len(categories)}.")
+            Logger.d("TUMMoodleSession", f"Total categories parsed: {len(categories)}")
             filtered_categories = filter(categories)
             Logger.d("TUMMoodleSession",
-                     f"Total entries after filtering: {sum(len(cat.entries) for cat in filtered_categories)}.")
+                     f"Total entries after filtering: {sum(len(cat.entries) for cat in filtered_categories)}")
             downloaded_path = await self._perform_download(filtered_categories, soup, save_path)
             if downloaded_path:
                 Logger.d("TUMMoodleSession", f"Downloaded archive will be saved to: {downloaded_path}")
             else:
-                Logger.w("TUMMoodleSession", f"No archive was downloaded for course {course_id}.")
+                Logger.w("TUMMoodleSession", f"No archive was downloaded for course {course_id}")
         except Exception as e:
             Logger.e("TUMMoodleSession", f"Failed to download archive for course {course_id}: {e}")
             raise
