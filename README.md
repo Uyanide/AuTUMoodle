@@ -2,7 +2,7 @@
 
 > stands for Auto - TUM - Moodle. I'm not that good at naming, I know...
 
-## Quick start
+## Quick Start
 
 > [!WARNING]
 >
@@ -15,9 +15,9 @@ For Linux systems, run the following commands in a POSIX-compliant terminal (e.g
 git clone https://github.com/Uyanide/AuTUMoodle.git --depth 1
 cd AuTUMoodle
 
-# Prepare virtual environment
+# Prepare virtual environment (optional but recommended)
 python3 -m venv .venv
-source .venv/bin/activate  # Or other commands depending on your OS and shell
+source .venv/bin/activate
 
 # Install dependencies
 python3 -m pip install -r requirements-minimal.txt
@@ -46,6 +46,10 @@ for Windows systems, run the following commands in PowerShell:
 git clone https://github.com/Uyanide/AuTUMoodle.git --depth 1
 Set-Location AuTUMoodle
 
+# Prepare virtual environment (optional but recommended)
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+
 # Install dependencies
 pip install -r requirements-minimal.txt
 
@@ -71,14 +75,14 @@ Prompts will appear to ask for your TUM Moodle credentials (username and passwor
 ## Contents
 
 - [AuTUMoodle](#autumoodle)
-  - [Quick start](#quick-start)
+  - [Quick Start](#quick-start)
   - [Contents](#contents)
   - [Features](#features)
   - [How to Use](#how-to-use)
     - [Via Docker](#via-docker)
     - [Directly via Python](#directly-via-python)
   - [CLI Arguments](#cli-arguments)
-  - [How this works](#how-this-works)
+  - [How This Works](#how-this-works)
   - [Config](#config)
     - [config.json](#configjson)
     - [credentials.json](#credentialsjson)
@@ -334,7 +338,8 @@ Prompts will appear to ask for your TUM Moodle credentials (username and passwor
 
       ```sh
       pip install playwright
-      playwright install firefox  # or chromium
+      playwright install
+      playwright install-deps
       ```
 
 5.  Prepare the configuration files:
@@ -388,7 +393,7 @@ will select courses using config.json, and only download from courses whose titl
 > docker run ... autumoodle:latest -r "^Analysis" -t "IN0009"
 > ```
 
-## How this works
+## How This Works
 
 1. Login ~~(which is so far the most tricky part)~~.
 2. Find out which course(s) to download from.
