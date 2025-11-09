@@ -45,17 +45,17 @@ for Windows systems, run the following commands in PowerShell:
 ```ps1
 # Clone this repository
 git clone https://github.com/Uyanide/AuTUMoodle.git --depth 1
-Set-Location AuTUMoodle
+cd AuTUMoodle
 
 # Prepare virtual environment (optional but recommended)
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+.\.venv\bin\Activate.ps1 # or .\.venv\Scripts\Activate.ps1
 
 # Install dependencies
 pip install -r requirements-minimal.txt
 
 # Prepare a minimal config file (change semester accordingly)
-@"{
+echo '{
   "courses": [
     {
       "pattern": ".*",
@@ -63,7 +63,7 @@ pip install -r requirements-minimal.txt
       "semester": "WS25_26"
     }
   ]
-}"@ | Out-File -Encoding utf8 config-minimal.json
+}' | Out-File -Encoding utf8 config-minimal.json
 
 # Good to go!
 python -m autumoodle -c config-minimal.json
