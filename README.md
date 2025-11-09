@@ -1,12 +1,15 @@
-# AuTUMoodle
+<h1>AuTUMoodle</h1>
 
 > stands for Auto - TUM - Moodle. I'm not that good at naming, I know...
+
+---
 
 ## Quick Start
 
 > [!WARNING]
 >
-> The instructions in this section are highly simplified. For more proper and robust usage, please refer to the [How to Use](#how-to-use) section and [Config](#config) section.
+> The instructions in this section are highly simplified (but still works in most cases).
+> For more proper and robust usage, please refer to the [How to Use](#how-to-use) section and [Config](#config) section.
 
 For Linux systems, run the following commands in a POSIX-compliant terminal (e.g. bash, zsh):
 
@@ -76,21 +79,20 @@ This will download all courses in the specified semester (here: winter semester 
 
 ## Contents
 
-- [AuTUMoodle](#autumoodle)
-  - [Quick Start](#quick-start)
-  - [Contents](#contents)
-  - [Features](#features)
-  - [How to Use](#how-to-use)
-    - [Via Docker](#via-docker)
-    - [Directly via Python](#directly-via-python)
-  - [CLI Arguments](#cli-arguments)
-  - [How This Works](#how-this-works)
-  - [Config](#config)
-    - [config.json](#configjson)
-    - [credentials.json](#credentialsjson)
-  - [Session Implementations](#session-implementations)
-  - [Pattern Matching](#pattern-matching)
-  - [Updating Methods](#updating-methods)
+- [Quick Start](#quick-start)
+- [Contents](#contents)
+- [Features](#features)
+- [How to Use](#how-to-use)
+  - [Via Docker](#via-docker)
+  - [Directly via Python](#directly-via-python)
+- [CLI Arguments](#cli-arguments)
+- [How This Works](#how-this-works)
+- [Config](#config)
+  - [config.json](#configjson)
+  - [credentials.json](#credentialsjson)
+- [Session Implementations](#session-implementations)
+- [Pattern Matching](#pattern-matching)
+- [Updating Methods](#updating-methods)
 
 ## Features
 
@@ -710,6 +712,11 @@ Both implementations are using asynchronous APIs, so the performance difference 
 
 - `pattern` is the string or regular expression to match against.
 
+> [!IMPORTANT]
+>
+> - All matches are case-sensitive (unless specified in `regex` pattern).
+> - Please also take the unpredictable sanitization of paths by Moodle into account. (e.g. how could `In der Klausur bereitgestellte Referenzmaterialien (falls benötigt)` become `In der Klausur bereitgestellte ___nzmaterialien (falls benötigt)`?)
+
 ## Updating Methods
 
 When a file to be downloaded already exists in the destination directory, and the file is determined to be updated (i.e. the update date of the file from moodle is newer than the local one), the following methods can be used to handle the situation:
@@ -717,3 +724,7 @@ When a file to be downloaded already exists in the destination directory, and th
 - `skip`: do not download the file again, keep the existing one.
 - `overwrite`: overwrite the existing file with the new one.
 - `rename`: download the new file and rename it by appending numbered suffixes, e.g. `file.pdf` -> `file_1.pdf`, `file_2.pdf`, etc.
+
+> [!NOTE]
+>
+> If not configured otherwise, the default method is always `rename`.
