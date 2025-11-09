@@ -1,5 +1,4 @@
 *
 !autumoodle
 !Dockerfile
-!entry.sh
-!requirements-docker.txt
+!docker

@@ -3,8 +3,8 @@
 ###
  # @Author: Uyanide pywang0608@foxmail.com
  # @Date: 2025-11-04 18:10:34
- # @LastEditTime: 2025-11-06 14:48:49
- # @Description: Entry point script that sets up the environment and runs the application.
+ # @LastEditTime: 2025-11-09 21:28:37
+ # @Description: Entry point script for and only for Docker container
 ###
 
 # Check envs

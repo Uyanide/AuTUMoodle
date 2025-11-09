@@ -19,4 +19,4 @@ RUN groupadd -f -g ${PGID:-1000} appuser || true && \
     chown -R appuser:appuser /app
 # RUN pip install --no-cache-dir -r requirements-docker.txt
 
-ENTRYPOINT [ "tini", "--", "/app/entry.sh", "/app/config.json", "appuser" ]
+ENTRYPOINT [ "tini", "--", "/app/docker/entry.sh", "/app/config.json", "appuser" ]

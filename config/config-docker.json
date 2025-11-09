@@ -1,5 +1,5 @@
 {
-    "$schema": "https://raw.githubusercontent.com/Uyanide/AuTUMoodle/master/schema/config.schema.json",
+    "$schema": "https://raw.githubusercontent.com/Uyanide/AuTUMoodle/master/config/config.schema.json",
     "destination_base": "/data",
     "cache_dir": "/cache",
     "session_type": "requests",

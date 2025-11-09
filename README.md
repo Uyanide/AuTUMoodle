@@ -247,7 +247,7 @@ This will download all courses in the specified semester (here: winter semester 
            - TUM_PASSWORD=your_password
      ```
 
-     > A complete example can be found [here](https://github.com/Uyanide/AuTUMoodle/blob/master/docker/compose.yaml).
+     > A complete example can be found [here](https://github.com/Uyanide/AuTUMoodle/blob/master/compose/compose.yaml).
 
   2. Set the `PUID` and `PGID` environment variables in your shell:
 
@@ -457,11 +457,11 @@ A minimal example could look like:
 
 which will download all courses in the winter semester 2025/2026, save them to the default location (`~/Documents/AuTUMoodle`), and organize the downloaded files into sub-directories based on the course titles and categories as defined in Moodle.
 
-> Complete examples can be found [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config.json) (for Linux), [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config-win.json) (for Windows) and [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config-docker.json) (for Docker).
+> Complete examples can be found [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config.json) (for Linux), [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config/config-win.json) (for Windows) and [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config/config-docker.json) (for Docker).
 
 Detailed explanation of each field:
 
-- `"$schema": "https://raw.githubusercontent.com/Uyanide/AuTUMoodle/master/schema/config.schema.json"` (optional but **highly recommended**)
+- `"$schema": "https://raw.githubusercontent.com/Uyanide/AuTUMoodle/master/config/config.schema.json"` (optional but **highly recommended**)
 
   URL to the JSON schema for this configuration file. This is useful when using editors that support JSON schema validation (e.g. VSCode) to provide auto-completion and validation of the config file.
 
@@ -698,7 +698,7 @@ Both implementations are using asynchronous APIs, so the performance difference 
 >
 > Please make sure to download the corresponding browser binaries by running `playwright install [browser_name]` and `playwright install-deps [browser_name]` in your terminal after installing the `playwright` package if you are planning to use the `playwright` session implementation.
 >
-> This is automatically handled by the [entrypoint script](https://github.com/Uyanide/AuTUMoodle/blob/master/entry.sh) case you are using the Docker image provided in this repository.
+> This is automatically handled by the [entrypoint script](https://github.com/Uyanide/AuTUMoodle/blob/master/docker/entry.sh) case you are using the Docker image provided in this repository.
 
 ## Pattern Matching
 

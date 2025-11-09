@@ -14,4 +14,4 @@ services:
     volumes:
       - /home/kolkas/Documents/Uni:/data
       - /home/kolkas/.cache/autumoodle:/cache
-      - /home/kolkas/Repositories/AuTUMoodle/config-docker.json:/app/config.json:ro
+      - /home/kolkas/Repositories/AuTUMoodle/config/config-docker.json:/app/config.json:ro
