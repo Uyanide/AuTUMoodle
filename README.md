@@ -70,7 +70,9 @@ python -m autumoodle -c config-minimal.json
 
 This will download all courses in the specified semester (here: winter semester 2025/2026) to the default location (`~/Documents/AuTUMoodle` on Linux, `C:\Users\YourUsername\Documents\AuTUMoodle` on Windows), organizing the downloaded files into sub-directories based on the course titles and categories as defined in Moodle.
 
-Prompts will appear to ask for your TUM Moodle credentials (username and password) after launching. If you don't want to enter them interactively every time, you can create a `credentials.json` file as explained in the [Config](#config) section.
+> [!NOTE]
+>
+> Prompts will appear to ask for your TUM Moodle credentials (username and password) after launching. If you don't want to enter them interactively every time, you can create a `credentials.json` file as explained in the [Config](#config) section.
 
 ## Contents
 
@@ -177,11 +179,11 @@ Prompts will appear to ask for your TUM Moodle credentials (username and passwor
        /path/to/AuTUMoodle/repository
      ```
 
-     explained:
-
-     - `PUID` and `PGID` build arguments are used to set the user and group id inside the container to match those of the host user, so that files created by the container will have the correct ownership on the host machine.
-     - `-t autumoodle:latest` tags the built image with the name `autumoodle` and tag `latest`.
-     - `/path/to/AuTUMoodle/repository` should be replaced with the actual path to the cloned/extracted AuTUMoodle repository on your machine.
+     > explained:
+     >
+     > - `PUID` and `PGID` build arguments are used to set the user and group id inside the container to match those of the host user, so that files created by the container will have the correct ownership on the host machine.
+     > - `-t autumoodle:latest` tags the built image with the name `autumoodle` and tag `latest`.
+     > - `/path/to/AuTUMoodle/repository` should be replaced with the actual path to the cloned/extracted AuTUMoodle repository on your machine.
 
   2. Run the container, mapping the configuration file and necessary directories, and passing in the credentials via environment variables:
 
@@ -196,14 +198,14 @@ Prompts will appear to ask for your TUM Moodle credentials (username and passwor
        autumoodle:latest
      ```
 
-     explained:
-
-     - `--name autumoodle` names the container `autumoodle` for easier reference in subsequent runs.
-     - `-v /path/to/local/config.json:/app/config.json:ro` maps the local configuration file to the container's expected location, in read-only mode.
-     - `-v /path/to/local/destination:/data` maps the local directory where downloaded files will be saved to the container's `/data` directory. e.g. `/home/ACoolGuy/Documents/Uni`.
-     - `-v /path/to/local/cache:/cache` maps the local directory for cached files to the container's `/cache` directory. e.g. `/home/ACoolGuy/.cache/autumoodle`.
-     - `-e TUM_USERNAME="your_username"` and `-e TUM_PASSWORD="your_password"` set the TUM Moodle login credentials as environment variables inside the container.
-     - `autumoodle:latest` specifies the image to run.
+     > explained:
+     >
+     > - `--name autumoodle` names the container `autumoodle` for easier reference in subsequent runs.
+     > - `-v /path/to/local/config.json:/app/config.json:ro` maps the local configuration file to the container's expected location, in read-only mode.
+     > - `-v /path/to/local/destination:/data` maps the local directory where downloaded files will be saved to the container's `/data` directory. e.g. `/home/ACoolGuy/Documents/Uni`.
+     > - `-v /path/to/local/cache:/cache` maps the local directory for cached files to the container's `/cache` directory. e.g. `/home/ACoolGuy/.cache/autumoodle`.
+     > - `-e TUM_USERNAME="your_username"` and `-e TUM_PASSWORD="your_password"` set the TUM Moodle login credentials as environment variables inside the container.
+     > - `autumoodle:latest` specifies the image to run.
 
      Additionally, a `--rm` flag can be added to automatically remove the container after running, but in this case `docker start` in step 3 can no longer be used for subsequent runs.
 
@@ -245,7 +247,7 @@ Prompts will appear to ask for your TUM Moodle credentials (username and passwor
            - TUM_PASSWORD=your_password
      ```
 
-     A complete example can be found [here](https://github.com/Uyanide/AuTUMoodle/blob/master/docker/compose.yaml).
+     > A complete example can be found [here](https://github.com/Uyanide/AuTUMoodle/blob/master/docker/compose.yaml).
 
   2. Set the `PUID` and `PGID` environment variables in your shell:
 
@@ -262,13 +264,13 @@ Prompts will appear to ask for your TUM Moodle credentials (username and passwor
      docker compose up autumoodle
      ```
 
-     or
-
-     ```sh
-     docker-compose up autumoodle
-     ```
-
-     if you are using an older version of Docker.
+     > or
+     >
+     > ```sh
+     > docker-compose up autumoodle
+     > ```
+     >
+     > if you are using an older version of Docker.
 
      Additionally, a `-d` flag can be added to run the container in detached mode, `--build` flag to force rebuild the image (useful after editing source code).
 
@@ -308,7 +310,7 @@ Prompts will appear to ask for your TUM Moodle credentials (username and passwor
     - Using `venv` (built-in Python module):
 
     ```sh
-    python -m venv .venv
+    python3 -m venv .venv
     source .venv/bin/activate  # Or other commands depending on your OS and shell
     ```
 
@@ -323,7 +325,7 @@ Prompts will appear to ask for your TUM Moodle credentials (username and passwor
     - Using `pip`:
 
     ```sh
-    pip install -r requirements.txt
+    python3 -m pip install -r requirements.txt
     ```
 
     - or manually, depending on the session implementation you want to use:
@@ -331,25 +333,25 @@ Prompts will appear to ask for your TUM Moodle credentials (username and passwor
       - for `requests` (better performance, but may break in the future):
 
       ```sh
-      pip install httpx beautifulsoup4
+      python3 -m pip install httpx beautifulsoup4
       ```
 
       - for `playwright` (more robust, but much heavier):
 
       ```sh
-      pip install playwright
+      python3 -m pip install playwright
       playwright install
       playwright install-deps
       ```
 
 5.  Prepare the configuration files:
 
-    > see [Config](#config) for details.
+    > Please refer to the [Config](#config) section for details about the configuration files.
 
 6.  Run the CLI tool:
 
     ```sh
-    python -m autumoodle -c path/to/config.json -s path/to/credentials.json
+    python3 -m autumoodle -c path/to/config.json -s path/to/credentials.json
     ```
 
 ## CLI Arguments
@@ -455,11 +457,11 @@ A minimal example could look like:
 
 which will download all courses in the winter semester 2025/2026, save them to the default location (`~/Documents/AuTUMoodle`), and organize the downloaded files into sub-directories based on the course titles and categories as defined in Moodle.
 
-Complete examples can be found [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config.json)(for Linux), [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config-win.json)(for Windows) and [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config-docker.json)(for Docker).
+> Complete examples can be found [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config.json) (for Linux), [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config-win.json) (for Windows) and [here](https://github.com/Uyanide/AuTUMoodle/blob/master/config-docker.json) (for Docker).
 
 Detailed explanation of each field:
 
-- `"$schema": "https://raw.githubusercontent.com/Uyanide/AuTUMoodle/master/schema/config.schema.json"` (optional)
+- `"$schema": "https://raw.githubusercontent.com/Uyanide/AuTUMoodle/master/schema/config.schema.json"` (optional but **highly recommended**)
 
   URL to the JSON schema for this configuration file. This is useful when using editors that support JSON schema validation (e.g. VSCode) to provide auto-completion and validation of the config file.
 
@@ -674,9 +676,7 @@ Detailed explanation of each field:
 
 ### credentials.json
 
-> [!NOTE]
->
-> An example from myself can be found [here](https://www.youtube.com/watch?v=dQw4w9WgXcQ) :)
+> An example for my account can be found [here](https://www.youtube.com/watch?v=dQw4w9WgXcQ).
 
 - `username` (required)
 
@@ -697,6 +697,8 @@ Both implementations are using asynchronous APIs, so the performance difference 
 > [!IMPORTANT]
 >
 > Please make sure to download the corresponding browser binaries by running `playwright install [browser_name]` and `playwright install-deps [browser_name]` in your terminal after installing the `playwright` package if you are planning to use the `playwright` session implementation.
+>
+> This is automatically handled by the [entrypoint script](https://github.com/Uyanide/AuTUMoodle/blob/master/entry.sh) case you are using the Docker image provided in this repository.
 
 ## Pattern Matching
 
