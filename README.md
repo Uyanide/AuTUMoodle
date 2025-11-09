@@ -2,8 +2,6 @@
 
 > stands for Auto - TUM - Moodle. I'm not that good at naming, I know...
 
----
-
 ## Quick Start
 
 > [!WARNING]
