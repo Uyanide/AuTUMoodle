@@ -1,7 +1,7 @@
 '''
 Author: Uyanide pywang0608@foxmail.com
 Date: 2025-11-03 13:03:19
-LastEditTime: 2025-11-07 11:28:02
+LastEditTime: 2025-11-14 13:06:11
 Description: Summary manager and Summary writer implementations
 '''
 
@@ -124,9 +124,10 @@ class SummaryManager:
         self.clear_old_summaries()
 
     def clear_old_summaries(self) -> None:
+        curr_time = time.time()
         for file in self._summary_dir.glob(f"{self._summary_prefix}*"):
             try:
-                days_old = (Path.cwd().stat().st_mtime - file.stat().st_mtime) / 86400
+                days_old = (curr_time - file.stat().st_mtime) / 86400
                 if days_old > self._expire_days:
                     Logger.d("SummaryManager", f"Deleting old summary file: {file} (age: {days_old:.2f} days)")
                     file.unlink()

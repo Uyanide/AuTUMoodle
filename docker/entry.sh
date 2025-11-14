@@ -1,10 +1,10 @@
 #!/bin/sh
 
 ###
- # @Author: Uyanide pywang0608@foxmail.com
- # @Date: 2025-11-04 18:10:34
- # @LastEditTime: 2025-11-09 21:28:37
- # @Description: Entry point script for and only for Docker container
+# @Author: Uyanide pywang0608@foxmail.com
+# @Date: 2025-11-04 18:10:34
+# @LastEditTime: 2025-11-09 21:28:37
+# @Description: Entry point script for and only for Docker container
 ###
 
 # Check envs
@@ -47,7 +47,7 @@ ARGS="$*"
         exit 1
     fi
 
-    python3 -m pip install $REQUIREMENTS
+    python3 -m pip install $REQUIREMENTS --root-user-action ignore
 } || {
     echo "Error: Failed to install required packages." >&2
     exit 1
