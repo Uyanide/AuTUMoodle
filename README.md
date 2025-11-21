@@ -676,7 +676,7 @@ Detailed explanation of each field:
 
 ### credentials.json
 
-> An example for my account can be found [here](https://www.youtube.com/watch?v=dQw4w9WgXcQ).
+> An example for my account can be found [here](https://vdse.bdstatic.com//192d9a98d782d9c74c96f09db9378d93.mp4).
 
 - `username` (required)
 
