@@ -4,10 +4,7 @@ services:
   autumoodle:
     build:
       context: ..
-      args:
-        PUID: 1000
-        PGID: 1000
-    # command: ['-t', 'NeverGonnaGiveYouUp'] # prevent download for testing
+    command: ['-t', 'NeverGonnaGiveYouUp'] # prevent download for testing
     env_file:
       - .env
     container_name: autumoodle

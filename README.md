@@ -120,18 +120,10 @@ This will download all courses in the specified semester (here: winter semester 
 1. Prerequisites:
 
    - [Docker](https://docs.docker.com/get-docker/)
-   - git (or manually download the source code as a zip file and extract it)
    - (optional) [Docker Compose](https://docs.docker.com/compose/install/)
+   - Internet Connection (of course)
 
-2. Clone this repository:
-
-   ```sh
-   git clone https://github.com/Uyanide/AuTUMoodle.git --depth 1
-   ```
-
-   or download the source code as a zip file from Github and extract to a local directory.
-
-3. Prepare configuration files:
+2. Prepare configuration files:
 
    When using Docker, only `config.json` is required, as credentials can be passed via environment variables. A minimal config file could look like:
 
@@ -165,51 +157,46 @@ This will download all courses in the specified semester (here: winter semester 
 
    > For detailed information about the configuration file, please refer to the [Config](#config) section.
 
-4. Run the Docker container:
+3. Run the Docker container:
+
+> [!WARNING]
+>
+> The command below assumes that the `docker` commands are run as the same user who owns the mapped directories on the host machine. If this is not the case, please adjust the `PUID` and `PGID` environment variables accordingly to match the owner of the mapped directories.
+>
+> Case you don't know how to run `docker` as a non-root user, please refer to [this guide](https://docs.docker.com/engine/install/linux-postinstall/).
 
 - Using `docker run`:
 
-  1. Build the Docker image:
-
-     ```sh
-     docker build \
-       --build-arg PUID=$(id -u) \
-       --build-arg PGID=$(id -g) \
-       -t autumoodle:latest \
-       /path/to/AuTUMoodle/repository
-     ```
-
-     > explained:
-     >
-     > - `PUID` and `PGID` build arguments are used to set the user and group id inside the container to match those of the host user, so that files created by the container will have the correct ownership on the host machine.
-     > - `-t autumoodle:latest` tags the built image with the name `autumoodle` and tag `latest`.
-     > - `/path/to/AuTUMoodle/repository` should be replaced with the actual path to the cloned/extracted AuTUMoodle repository on your machine.
-
-  2. Run the container, mapping the configuration file and necessary directories, and passing in the credentials via environment variables:
+  1. Run the container, mapping the configuration file and necessary directories, and passing in the credentials via environment variables:
 
      ```sh
      docker run \
-       --name autumoodle \
        -v /path/to/local/config.json:/app/config.json:ro \
        -v /path/to/local/destination:/data \
        -v /path/to/local/cache:/cache \
        -e TUM_USERNAME="your_username" \
        -e TUM_PASSWORD="your_password" \
-       autumoodle:latest
+       -e PUID=$(id -u) \
+       -e PGID=$(id -g) \
+       ghcr.io/uyanide/autumoodle:latest
      ```
 
-     > explained:
-     >
-     > - `--name autumoodle` names the container `autumoodle` for easier reference in subsequent runs.
-     > - `-v /path/to/local/config.json:/app/config.json:ro` maps the local configuration file to the container's expected location, in read-only mode.
-     > - `-v /path/to/local/destination:/data` maps the local directory where downloaded files will be saved to the container's `/data` directory. e.g. `/home/ACoolGuy/Documents/Uni`.
-     > - `-v /path/to/local/cache:/cache` maps the local directory for cached files to the container's `/cache` directory. e.g. `/home/ACoolGuy/.cache/autumoodle`.
-     > - `-e TUM_USERNAME="your_username"` and `-e TUM_PASSWORD="your_password"` set the TUM Moodle login credentials as environment variables inside the container.
-     > - `autumoodle:latest` specifies the image to run.
+     explained:
+
+     - `--name autumoodle` names the container `autumoodle` for easier reference in subsequent runs.
+     - `-v /path/to/local/config.json:/app/config.json:ro` maps the local configuration file to the container's expected location, in read-only mode.
+     - `-v /path/to/local/destination:/data` maps the local directory where downloaded files will be saved to the container's `/data` directory. e.g. `/home/ACoolGuy/Documents/Uni`.
+     - `-v /path/to/local/cache:/cache` maps the local directory for cached files to the container's `/cache` directory. e.g. `/home/ACoolGuy/.cache/autumoodle`.
+
+       > Mapping of `/cache` is optional. Case not provided, the cache will be created dynamically each time the container runs, and some of the features such as session saving (if enabled) may not work properly.
+
+     - `-e TUM_USERNAME="your_username"` and `-e TUM_PASSWORD="your_password"` set the TUM Moodle login credentials as environment variables inside the container.
+     - `-e PUID=$(id -u)` and `-e PGID=$(id -g)` pass the user ID and group ID of the current user on the host machine to the container, ensuring that files created by the container have the correct ownership.
+     - `ghcr.io/uyanide/autumoodle:latest` specifies the image to run. Available on [GitHub Container Registry](https://github.com/Uyanide/AuTUMoodle/pkgs/container/autumoodle).
 
      Additionally, a `--rm` flag can be added to automatically remove the container after running, but in this case `docker start` in step 3 can no longer be used for subsequent runs.
 
-  3. Then each time you want to run the tool, execute:
+  2. Then each time you want to run the tool, execute:
 
      ```sh
      docker start -a autumoodle
@@ -218,7 +205,7 @@ This will download all courses in the specified semester (here: winter semester 
      where the `-a` flag is used to attach the container's output to your terminal. Or
 
      ```sh
-     docker run --rm ... # same as step 2
+     docker run --rm ... # same as step 1
      ```
 
      case `--rm` flag is used.
@@ -232,11 +219,7 @@ This will download all courses in the specified semester (here: winter semester 
 
      services:
        autumoodle:
-         build:
-           context: /path/to/AuTUMoodle/repository
-           args:
-             PUID: ${PUID} # or replace with actual numeric value
-             PGID: ${PGID} # or replace with actual numeric value
+         image: ghcr.io/uyanide/autumoodle:latest
          container_name: autumoodle # container name
          volumes:
            - /path/to/local/config.json:/app/config.json:ro
@@ -245,20 +228,13 @@ This will download all courses in the specified semester (here: winter semester 
          environment: # or use env_file to load from .env
            - TUM_USERNAME=your_username
            - TUM_PASSWORD=your_password
+           - PUID=${PUID} # or replace with actual numeric value
+           - PGID=${PGID} # or replace with actual numeric value
      ```
 
      > A complete example can be found [here](https://github.com/Uyanide/AuTUMoodle/blob/master/compose/compose.yaml).
 
-  2. Set the `PUID` and `PGID` environment variables in your shell:
-
-     ```sh
-     export PUID=$(id -u)
-     export PGID=$(id -g)
-     ```
-
-     Or if you already know the exact user id and group id, you can directly replace `${PUID}` and `${PGID}` in the `compose.yaml` file with the actual numeric values.
-
-  3. Build and run the container:
+  2. Build and run the container:
 
      ```sh
      docker compose up autumoodle
@@ -274,7 +250,7 @@ This will download all courses in the specified semester (here: winter semester 
 
      Additionally, a `-d` flag can be added to run the container in detached mode, `--build` flag to force rebuild the image (useful after editing source code).
 
-  4. Then each time you want to run the tool, execute:
+  3. Then each time you want to run the tool, execute:
 
      ```sh
      docker start -a autumoodle

@@ -3,7 +3,7 @@
 ###
 # @Author: Uyanide pywang0608@foxmail.com
 # @Date: 2025-11-04 18:10:34
-# @LastEditTime: 2025-11-09 21:28:37
+ # @LastEditTime: 2025-11-23 19:23:05
 # @Description: Entry point script for and only for Docker container
 ###
 
@@ -19,11 +19,19 @@
     exit 1
 }
 
+[ -z "$PUID" ] && {
+    PUID=1000
+}
+
+[ -z "$PGID" ] && {
+    PGID=1000
+}
+
 # Parse args
 
 CONFIG_PATH="$1"
-USER="$2"
-shift 2
+USER="appuser"
+shift 1
 ARGS="$*"
 
 [ -f "$CONFIG_PATH" ] || {
@@ -54,17 +62,39 @@ ARGS="$*"
 }
 
 # Create a non-root user
-# should be done in Dockerfile
 
-# {
-#     groupadd -f -g "${PGID}" "${USER}" || true && \
-#     useradd -r -m -u "${PUID}" -g "${PGID}" "${USER}" 2>/dev/null || \
-#     useradd -r -m -u "${PUID}" -g "${USER}" "${USER}" && \
-#     chown -R "${USER}":"${USER}" /app
-# } || {
-#     echo "Error: Failed to create or configure ${USER}." >&2
-#     exit 1
-# }
+smart_chown() {
+    local dir="$1"
+
+    if [ ! -d "$dir" ]; then
+        mkdir -p "$dir" || {
+            echo "Error: Failed to create directory $dir." >&2
+            exit 1
+        }
+        return 0
+    fi
+
+    local current_owner
+    current_owner=$(stat -c "%u" "$dir")
+
+    if [ "$current_owner" != "$PUID" ]; then
+        chown -R "${PUID}:${PGID}" "$dir" || {
+            echo "Error: Failed to change ownership of $dir." >&2
+            exit 1
+        }
+    fi
+}
+
+{
+    groupadd -f -g "${PGID}" "${USER}" || true && \
+    useradd -r -m -u "${PUID}" -g "${PGID}" "${USER}" 2>/dev/null || \
+    useradd -r -m -u "${PUID}" -g "${USER}" "${USER}" && \
+    smart_chown /data && \
+    smart_chown /cache
+} || {
+    echo "Error: Failed to create or configure ${USER}." >&2
+    exit 1
+}
 
 # Install browser if needed
 
@@ -88,9 +118,4 @@ if [ "$SESSION_TYPE" = "playwright" ]; then
     }
 fi
 
-su - "${USER}" -c "(
-    cd /app
-    export TUM_USERNAME=\"$TUM_USERNAME\"
-    export TUM_PASSWORD=\"$TUM_PASSWORD\"
-    python3 -m autumoodle $ARGS
-)"
+exec gosu "$USER" python3 -m autumoodle $ARGS
