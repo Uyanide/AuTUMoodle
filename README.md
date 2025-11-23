@@ -171,6 +171,7 @@ This will download all courses in the specified semester (here: winter semester 
 
      ```sh
      docker run \
+       --name autumoodle \
        -v /path/to/local/config.json:/app/config.json:ro \
        -v /path/to/local/destination:/data \
        -v /path/to/local/cache:/cache \

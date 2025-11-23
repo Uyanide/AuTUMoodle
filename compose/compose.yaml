@@ -2,9 +2,8 @@ name: autumoodle
 
 services:
   autumoodle:
-    build:
-      context: ..
-    command: ['-t', 'NeverGonnaGiveYouUp'] # prevent download for testing
+    image: ghcr.io/uyanide/autumoodle:latest
+    # command: ['-t', 'NeverGonnaGiveYouUp'] # prevent download for testing
     env_file:
       - .env
     container_name: autumoodle
