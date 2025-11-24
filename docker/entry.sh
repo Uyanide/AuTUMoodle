@@ -3,7 +3,7 @@
 ###
 # @Author: Uyanide pywang0608@foxmail.com
 # @Date: 2025-11-04 18:10:34
- # @LastEditTime: 2025-11-23 19:23:05
+ # @LastEditTime: 2025-11-24 10:28:13
 # @Description: Entry point script for and only for Docker container
 ###
 
@@ -85,16 +85,18 @@ smart_chown() {
     fi
 }
 
-{
-    groupadd -f -g "${PGID}" "${USER}" || true && \
-    useradd -r -m -u "${PUID}" -g "${PGID}" "${USER}" 2>/dev/null || \
-    useradd -r -m -u "${PUID}" -g "${USER}" "${USER}" && \
-    smart_chown /data && \
-    smart_chown /cache
-} || {
-    echo "Error: Failed to create or configure ${USER}." >&2
-    exit 1
-}
+if ! id -u "${USER}" >/dev/null 2>&1; then
+    {
+        groupadd -f -g "${PGID}" "${USER}" || true && \
+        useradd -r -m -u "${PUID}" -g "${PGID}" "${USER}" 2>/dev/null || \
+        useradd -r -m -u "${PUID}" -g "${USER}" "${USER}" && \
+        smart_chown /data && \
+        smart_chown /cache
+    } || {
+        echo "Error: Failed to create or configure ${USER}." >&2
+        exit 1
+    }
+fi
 
 # Install browser if needed
 
