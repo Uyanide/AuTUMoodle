@@ -34,6 +34,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          bake-target: requests
           tags: |
             type=raw,value=requests
             type=sha,prefix=requests-,format=short
@@ -43,6 +44,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          bake-target: playwright
           tags: |
             type=raw,value=playwright
             type=sha,prefix=playwright-,format=short
@@ -50,10 +52,11 @@ jobs:
       - name: Build and push Docker images
         uses: docker/bake-action@v6
         with:
-          files: ./docker/docker-bake.hcl
+          files: |
+            ./docker/docker-bake.hcl
+            ${{ steps.meta-requests.outputs.bake-file }}
+            ${{ steps.meta-playwright.outputs.bake-file }}
           push: true
           set: |
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
-            requests.tags=${{ steps.meta-requests.outputs.tags }}
-            playwright.tags=${{ steps.meta-playwright.outputs.tags }}
