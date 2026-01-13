@@ -1,7 +1,7 @@
 '''
 Author: Uyanide pywang0608@foxmail.com
 Date: 2025-10-29 22:08:19
-LastEditTime: 2025-11-05 12:52:07
+LastEditTime: 2026-01-13 06:06:37
 Description: CLI entry point for autumoodle
 '''
 
@@ -45,6 +45,14 @@ def get_argparser():
     parser.add_argument(
         "-l", "--literal", dest="literal", action=OrderedPatternAction, metavar="LITERAL",
         help="Match course title against the given literal string (can be given multiple times)."
+    )
+    parser.add_argument(
+        "-S", "--session", dest="session_type", choices=["playwright", "requests"],
+        help="Override session type set in configuration file (playwright or requests)."
+    )
+    parser.add_argument(
+        "-B", "--browser", dest="browser",
+        help="Override Playwright browser type set in configuration file."
     )
     return parser
 
@@ -109,5 +117,13 @@ async def run():
             "Either provide a secret file (via -s/--secret), "
             f"or set the {ENV_USERNAME} and {ENV_PASSWORD} environment variables.")
     config.set_credentials(username, password)
+
+    if args.session_type and args.session_type in ["playwright", "requests"]:
+        Logger.i("CLI", f"Overriding session type to: {args.session_type}")
+        config.session_type = args.session_type
+
+    if args.browser:
+        Logger.i("CLI", f"Overriding Playwright browser to: {args.browser}")
+        config.playwright_browser = args.browser
 
     await TUMMoodleDownloader(config, additional_matchers).do_magic()

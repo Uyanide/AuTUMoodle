@@ -50,10 +50,6 @@
                 },
                 "browser": {
                     "type": "string",
-                    "enum": [
-                        "chromium",
-                        "firefox"
-                    ],
                     "default": "firefox",
                     "description": "Browser to use"
                 }

@@ -29,21 +29,31 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
+      - name: Extract metadata for Requests
+        id: meta-requests
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=sha,prefix={{branch}}-,format=short
+            type=raw,value=requests
+            type=sha,prefix=requests-,format=short
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+      - name: Extract metadata for Playwright
+        id: meta-playwright
+        uses: docker/metadata-action@v5
         with:
-          context: .
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=playwright
+            type=sha,prefix=playwright-,format=short
+
+      - name: Build and push Docker images
+        uses: docker/bake-action@v4
+        with:
+          files: ./docker/docker-bake.hcl
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          set: |
+            *.cache-from=type=gha
+            *.cache-to=type=gha,mode=max
+            requests.tags=${{ steps.meta-requests.outputs.tags }}
+            playwright.tags=${{ steps.meta-playwright.outputs.tags }}
