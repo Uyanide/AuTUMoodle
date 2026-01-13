@@ -29,34 +29,50 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata for Requests
+      # --- Requests ---
+
+      - name: Extract metadata (Requests)
         id: meta-requests
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          bake-target: requests
           tags: |
             type=raw,value=requests
             type=sha,prefix=requests-,format=short
 
-      - name: Extract metadata for Playwright
+      - name: Build and push (Requests)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: ${{ steps.meta-requests.outputs.tags }}
+          labels: ${{ steps.meta-requests.outputs.labels }}
+          build-args: |
+            SESSION_TYPE=requests
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # --- Playwright ---
+
+      - name: Extract metadata (Playwright)
         id: meta-playwright
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          bake-target: playwright
           tags: |
             type=raw,value=playwright
             type=sha,prefix=playwright-,format=short
 
-      - name: Build and push Docker images
-        uses: docker/bake-action@v6
+      - name: Build and push (Playwright)
+        uses: docker/build-push-action@v5
         with:
-          files: |
-            ./docker/docker-bake.hcl
-            ${{ steps.meta-requests.outputs.bake-file }}
-            ${{ steps.meta-playwright.outputs.bake-file }}
+          context: .
+          file: Dockerfile
           push: true
-          set: |
-            *.cache-from=type=gha
-            *.cache-to=type=gha,mode=max
+          tags: ${{ steps.meta-playwright.outputs.tags }}
+          labels: ${{ steps.meta-playwright.outputs.labels }}
+          build-args: |
+            SESSION_TYPE=playwright
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
