@@ -2,14 +2,36 @@
 
 > stands for Auto - TUM - Moodle. I'm not that good at naming, I know...
 
+## Contents
+
+- [Contents](#contents)
+- [Quick Start](#quick-start)
+- [Features](#features)
+- [How to Use](#how-to-use)
+  - [Via Docker](#via-docker)
+    - [Requests-based image (lightweight, better performance)](#requests-based-image-lightweight-better-performance)
+    - [Playwright-based image (more robust, but heavier)](#playwright-based-image-more-robust-but-heavier)
+  - [Directly via Python](#directly-via-python)
+- [CLI Arguments](#cli-arguments)
+- [How This Works](#how-this-works)
+- [Config](#config)
+  - [config.json](#configjson)
+  - [credentials.json](#credentialsjson)
+- [Session Implementations](#session-implementations)
+- [Pattern Matching](#pattern-matching)
+- [Updating Methods](#updating-methods)
+
 ## Quick Start
 
 > [!WARNING]
 >
-> The instructions in this section are highly simplified (but still works in most cases).
+> The instructions in this section are highly simplified (but still work in most cases).
 > For more proper and robust usage, please refer to the [How to Use](#how-to-use) section and [Config](#config) section.
 
-For Linux systems, run the following commands in a POSIX-compliant terminal (e.g. bash, zsh):
+<details>
+<summary>For Linux systems</summary>
+
+run the following commands in a POSIX-compliant terminal (e.g. bash, zsh):
 
 ```sh
 # Clone this repository
@@ -40,7 +62,16 @@ EOF
 python3 -m autumoodle -c config-minimal.json
 ```
 
-for Windows systems, run the following commands in PowerShell:
+This will download all courses in the specified semester (here: winter semester 2025/2026) to the default location (`~/Documents/AuTUMoodle` on Linux, `C:\Users\YourUsername\Documents\AuTUMoodle` on Windows), organizing the downloaded files into sub-directories based on the course titles and categories as defined in Moodle.
+
+Prompts will appear to ask for your TUM Moodle credentials (username and password) after launching. If you don't want to enter them interactively every time, you can create a `credentials.json` file as explained in the [Config](#config) section.
+
+</details>
+
+<details>
+<summary>For Windows systems</summary>
+
+run the following commands in PowerShell:
 
 ```ps1
 # Clone this repository
@@ -71,28 +102,9 @@ python -m autumoodle -c config-minimal.json
 
 This will download all courses in the specified semester (here: winter semester 2025/2026) to the default location (`~/Documents/AuTUMoodle` on Linux, `C:\Users\YourUsername\Documents\AuTUMoodle` on Windows), organizing the downloaded files into sub-directories based on the course titles and categories as defined in Moodle.
 
-> [!NOTE]
->
-> Prompts will appear to ask for your TUM Moodle credentials (username and password) after launching. If you don't want to enter them interactively every time, you can create a `credentials.json` file as explained in the [Config](#config) section.
+Prompts will appear to ask for your TUM Moodle credentials (username and password) after launching. If you don't want to enter them interactively every time, you can create a `credentials.json` file as explained in the [Config](#config) section.
 
-## Contents
-
-- [Quick Start](#quick-start)
-- [Contents](#contents)
-- [Features](#features)
-- [How to Use](#how-to-use)
-  - [Via Docker](#via-docker)
-    - [Requests-based image (lightweight, better performance)](#requests-based-image-lightweight-better-performance)
-    - [Playwright-based image (more robust, but heavier)](#playwright-based-image-more-robust-but-heavier)
-  - [Directly via Python](#directly-via-python)
-- [CLI Arguments](#cli-arguments)
-- [How This Works](#how-this-works)
-- [Config](#config)
-  - [config.json](#configjson)
-  - [credentials.json](#credentialsjson)
-- [Session Implementations](#session-implementations)
-- [Pattern Matching](#pattern-matching)
-- [Updating Methods](#updating-methods)
+</details>
 
 ## Features
 
@@ -284,6 +296,8 @@ This will download all courses in the specified semester (here: winter semester 
    - `destination_base`: `/data` (the directory inside the container where downloaded files will be saved to)
    - `cache_dir`: `/cache` (the directory inside the container where cached files will be stored)
    - `playwright.headless`: `true` (to ensure the browser runs in headless mode inside the container)
+
+   `playwright.browser` will be overridden to `chromium` automatically inside the container, so no need to set it here.
 
    Please also keep in mind that all the absolute paths in the config file should refer to paths inside the container (i.e. starting with `/data` or `/cache`), not paths on the host machine (e.g. `/home/ACoolGuy/Documents/Uni`).
 
@@ -491,7 +505,10 @@ e.g.
 python -m autumoodle -c config.json -s credentials.json -r "^Analysis" -t "IN0009"
 ```
 
-will select courses using config.json, and only download from courses whose title starts with "Analysis" **or** contains "IN0009".
+will:
+
+1. select courses using config.json,
+2. and only download from courses whose title starts with "Analysis" **or** contains "IN0009".
 
 > [!NOTE]
 >
@@ -522,12 +539,12 @@ will select courses using config.json, and only download from courses whose titl
 
 Based on this procedure, rules defined in the configuration file primarily target four levels:
 
-| Level    | Takes effect in steps | Example target                           |
-| -------- | --------------------- | ---------------------------------------- |
-| course   | 2                     | Analysis I (WS25_26)                     |
-| category | 4, 6                  | Vorlesungen, Übungen                     |
-| entry    | 4, 6                  | Folien 01, Hausaufgabe 1                 |
-| file     | 6                     | Folien 01.pdf, Hausaufgabe 1/sheet_1.pdf |
+| Level    | Targeting step(s) | Example target                           |
+| -------- | ----------------- | ---------------------------------------- |
+| course   | 2                 | Analysis I (WS25_26)                     |
+| category | 4, 6              | Vorlesungen, Übungen                     |
+| entry    | 4, 6              | Folien 01, Hausaufgabe 1                 |
+| file     | 6                 | Folien 01.pdf, Hausaufgabe 1/sheet_1.pdf |
 
 > [!NOTE]
 >
@@ -708,9 +725,9 @@ which will download all courses in the winter semester 2025/2026, save them to t
 
     matches the basename with extension of the file. See [pattern matching](#pattern-matching) for how this works.
 
-> Rules in this field have the highest priority, and will be applied to **actual files** rather than entries displayed in the "Download Center" page.
-
-> This is useful when ignoring html files that are automatically generated by Moodle for certain types of entries (such as intro.html).
+  > Rules in this field have the highest priority, and will be applied to **actual files** rather than entries displayed in the "Download Center" page.
+  >
+  > This is useful when ignoring html files that are automatically generated by Moodle for certain types of entries (such as intro.html).
 
 - `log_level` (optional, default: `INFO`)
 
@@ -720,19 +737,19 @@ which will download all courses in the winter semester 2025/2026, save them to t
 
   the directory where cached files will be stored.
 
-> Temporary files will be stored in the system's temporary directory such as `/tmp` on Linux systems and `%TEMP%` on Windows systems. To clear the temporary files that have not been deleted properly (such as after ctrl+c), run:
->
-> ```sh
-> rm -rf /tmp/autumoodle_*
-> ```
->
-> on Linux systems, or:
->
-> ```ps1
-> Remove-Item -Recurse -Force $env:TEMP\autumoodle_*
-> ```
->
-> on Windows systems (in powershell).
+  > Temporary files will be stored in the system's temporary directory such as `/tmp` on Linux systems and `%TEMP%` on Windows systems. To clear the temporary files that have not been deleted properly (such as after ctrl+c), run:
+  >
+  > ```sh
+  > rm -rf /tmp/autumoodle_*
+  > ```
+  >
+  > on Linux systems, or:
+  >
+  > ```ps1
+  > Remove-Item -Recurse -Force $env:TEMP\autumoodle_*
+  > ```
+  >
+  > on Windows systems (in powershell).
 
 - `session_type` (optional, default: `requests`)
 
@@ -750,6 +767,8 @@ which will download all courses in the winter semester 2025/2026, save them to t
   - `browser` (optional, default: `chromium`)
 
     the browser to use. Please refer to the [Playwright documentation](https://playwright.dev/python/docs/browsers) for details.
+
+    This will be overridden to `chromium` automatically inside the Docker container.
 
   - `headless` (optional, default: `true`)
 
@@ -801,6 +820,8 @@ which will download all courses in the winter semester 2025/2026, save them to t
 
 - `requests`: based on the [httpx](https://www.python-httpx.org/) library to make HTTP requests. Lightweight, fast, but may soon break if the procedure of Shibboleth SSO login used by TUM Moodle changes some day (like many other similar tools out there).
 
+> Why named after `requests` instead of `httpx`? httpx is basically requests library on steroids, providing async support and better performance. However, since requests is more widely known, I decided to name it like this for better recognition.
+
 - `playwright`: based on the [Playwright](https://playwright.dev/) library to automate browser interactions. Although it can be used to bypass the complicated (manual) Shibboleth SSO logins, it remains to be a rather "heavy" solution since this literally runs a browser (firefox by default) in the background.
 
 Both implementations are using asynchronous APIs, so the performance difference in practice may not be that significant taking the network latency into account.
@@ -809,7 +830,7 @@ Both implementations are using asynchronous APIs, so the performance difference 
 >
 > Please make sure to download the corresponding browser binaries by running `playwright install [browser_name]` and `playwright install-deps [browser_name]` in your terminal after installing the `playwright` package if you are planning to use the `playwright` session implementation.
 >
-> This is automatically handled by the [entrypoint script](https://github.com/Uyanide/AuTUMoodle/blob/master/docker/entry.sh) case you are using the Docker image provided in this repository.
+> This is automatically handled by the [install script](https://github.com/Uyanide/AuTUMoodle/blob/master/docker/install.sh) case you are using the Docker image provided in this repository.
 
 ## Pattern Matching
 

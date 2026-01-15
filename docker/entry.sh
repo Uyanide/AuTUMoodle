@@ -3,7 +3,7 @@
 ###
 # @Author: Uyanide pywang0608@foxmail.com
 # @Date: 2025-11-04 18:10:34
- # @LastEditTime: 2026-01-13 05:52:53
+ # @LastEditTime: 2026-01-13 06:43:07
 # @Description: Entry point script for and only for Docker container
 ###
 
@@ -41,20 +41,14 @@ smart_chown() {
     dir="$1"
 
     if [ ! -d "$dir" ]; then
-        mkdir -p "$dir" || {
-            echo "Error: Failed to create directory $dir." >&2
-            exit 1
-        }
+        mkdir -p "$dir"
     fi
 
     local current_owner
     current_owner=$(stat -c "%u" "$dir")
 
     if [ "$current_owner" != "$PUID" ]; then
-        chown -R "${PUID}:${PGID}" "$dir" || {
-            echo "Error: Failed to change ownership of $dir." >&2
-            exit 1
-        }
+        chown -R "${PUID}:${PGID}" "$dir"
     fi
 }
 
